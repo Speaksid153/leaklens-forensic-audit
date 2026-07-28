@@ -22,8 +22,20 @@ def validate_dataset(df: pd.DataFrame, config: DatasetConfig) -> None:
         raise ValueError("test_size must be between 0.1 and 0.5")
     if len(df) < 80:
         raise ValueError("at least 80 rows are required for a meaningful audit")
+    if df[config.target].isna().any():
+        raise ValueError(
+            "target column contains missing values; remove or label them before auditing"
+        )
     if df[config.target].nunique(dropna=True) != 2:
         raise ValueError("Day 1 supports binary classification targets only")
+    if config.positive_label not in set(df[config.target].unique()):
+        raise ValueError("positive_label is not present in the target column")
+    if config.entity_column and df[config.entity_column].isna().any():
+        raise ValueError("entity column contains missing values")
+    if config.time_column:
+        parsed_time = pd.to_datetime(df[config.time_column], errors="coerce")
+        if parsed_time.isna().any():
+            raise ValueError("time column contains missing or unparseable values")
 
 
 def run_detectors(df: pd.DataFrame, config: DatasetConfig) -> list[AuditFinding]:
@@ -90,4 +102,3 @@ def audit(df: pd.DataFrame, config: DatasetConfig) -> dict[str, Any]:
             for metric in naive.metrics
         },
     }
-

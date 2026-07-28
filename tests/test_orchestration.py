@@ -1,6 +1,8 @@
+import pytest
+
 from leaklens.contracts import DatasetConfig
 from leaklens.demo_data import clean_control, loan_default_trap
-from leaklens.orchestration import audit
+from leaklens.orchestration import audit, validate_dataset
 
 
 def test_audit_exposes_metric_inflation_for_loan_trap() -> None:
@@ -22,3 +24,33 @@ def test_clean_control_audits_without_critical_penalty() -> None:
     assert result["reliability"]["score"] >= 90
     assert result["trustworthy_evaluation"]["strategy"] == "stratified_random"
 
+
+def test_missing_target_is_rejected_before_modeling() -> None:
+    frame = clean_control()
+    frame.loc[0, "target"] = None
+    config = DatasetConfig(target="target")
+    try:
+        validate_dataset(frame, config)
+    except ValueError as error:
+        assert "target column contains missing values" in str(error)
+    else:
+        raise AssertionError("missing targets must not pass validation")
+
+
+def test_unknown_positive_label_is_rejected() -> None:
+    frame = clean_control()
+    config = DatasetConfig(target="target", positive_label="unknown")
+    try:
+        validate_dataset(frame, config)
+    except ValueError as error:
+        assert "positive_label" in str(error)
+    else:
+        raise AssertionError("an absent positive label must not pass validation")
+
+
+def test_invalid_timestamp_is_rejected_before_detection() -> None:
+    frame = clean_control().rename(columns={"feature_a": "timestamp"})
+    frame["timestamp"] = "not-a-date"
+    config = DatasetConfig(target="target", time_column="timestamp")
+    with pytest.raises(ValueError, match="time column contains missing or unparseable values"):
+        validate_dataset(frame, config)

@@ -18,12 +18,17 @@ def _univariate_auc(series: pd.Series, target: pd.Series) -> float | None:
     if pd.api.types.is_numeric_dtype(x):
         encoded = x.astype(float)
     else:
-        # In-sample target encoding of near-unique categories would give every row its own
-        # label and manufacture an AUC of 1. Identifier risk is audited separately.
+        # High-cardinality identifiers are handled by the identifier detector. For other
+        # categoricals, leave-one-out encoding prevents a row's own target from creating
+        # artificial predictive power.
         if x.nunique() > min(100, max(10, int(len(x) * 0.2))):
             return None
-        rates = y.groupby(x, observed=True).mean()
-        encoded = x.map(rates).astype(float)
+        frame = pd.DataFrame({"feature": x, "target": y})
+        grouped = frame.groupby("feature", observed=True)["target"].agg(["sum", "count"])
+        sums = x.map(grouped["sum"]).astype(float)
+        counts = x.map(grouped["count"]).astype(float)
+        global_rate = float(y.mean())
+        encoded = ((sums - y) / (counts - 1)).where(counts > 1, global_rate)
     try:
         auc = float(roc_auc_score(y, encoded))
     except ValueError:

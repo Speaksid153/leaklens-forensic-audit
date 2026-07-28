@@ -34,3 +34,32 @@ against datasets with known failure modes.
 During verification, Codex found that in-sample target encoding made a unique application ID appear
 perfectly predictive. That was leakage inside the detector itself. The detector now delegates
 high-cardinality categories to the identifier audit, and a regression assertion prevents recurrence.
+
+## Day 1 revalidation and hardening
+
+### Findings
+
+- Combined entity/time configurations used chronological splitting but did not enforce entity
+  disjointness.
+- Missing target values passed initial validation and failed later inside Scikit-learn.
+- Low-cardinality categorical screening still learned target rates from the evaluated row.
+- The first readmission demonstration detected entity overlap but showed weak metric inflation.
+
+### Corrections
+
+- Added strict entity-disjoint chronological evaluation with an explicit infeasibility error when
+  entity time ranges overlap.
+- Added early validation for missing targets, absent positive labels, incomplete entities, and
+  invalid timestamps.
+- Replaced in-sample categorical target encoding with leave-one-out encoding.
+- Strengthened the repeated-patient demonstration while keeping a clean control as a false-positive
+  gate.
+
+### Verified results
+
+- `python -m pytest`: 14 passed.
+- `python -m ruff check .`: all checks passed.
+- Loan ROC-AUC: 1.000 naive versus 0.678 entity-disjoint chronological.
+- Readmission ROC-AUC: 0.864 naive versus 0.506 group-aware.
+- Maintenance ROC-AUC: 1.000 naive versus 0.659 entity-disjoint chronological.
+- Clean control: reliability 100, zero findings, and zero metric inflation.

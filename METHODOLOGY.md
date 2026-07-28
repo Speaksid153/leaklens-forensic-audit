@@ -17,10 +17,16 @@ The test partition never determines preprocessing parameters. Available split st
 
 1. stratified random split for independent rows;
 2. group-aware split for repeated entities;
-3. chronological split for forward-looking deployment.
+3. chronological split for forward-looking deployment;
+4. entity-disjoint chronological split when both constraints apply.
+
+The combined strategy assigns the latest non-overlapping entity cohorts to the test partition. If
+entity time ranges overlap, strict temporal ordering and entity disjointness cannot both be achieved
+without discarding data. LeakLens rejects that configuration rather than silently weakening the
+evaluation contract.
 
 ## Interpretation
 
 Near-perfect univariate performance is labeled *suspected* leakage. Domain knowledge is required
-to determine whether a field would exist at the real prediction moment.
-
+to determine whether a field would exist at the real prediction moment. Categorical screening uses
+leave-one-out encoding so a row's own label cannot manufacture its suspicious-feature score.

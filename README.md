@@ -12,7 +12,7 @@ may come from leakage, contamination, or an unsuitable split.
 
 - deterministic flawed and clean demonstration datasets;
 - duplicate, entity-overlap, identifier, suspicious-feature, and temporal detectors;
-- stratified, group-aware, and chronological evaluation strategies;
+- stratified, group-aware, chronological, and entity-disjoint chronological evaluation;
 - leakage-safe Scikit-learn preprocessing and logistic-regression baseline;
 - transparent reliability deductions and metric-inflation output;
 - automated positive, negative, and reproducibility tests.
@@ -33,6 +33,6 @@ The audit engine is intentionally independent of the Streamlit interface planned
 
 - Binary classification only.
 - Statistical evidence cannot prove semantic leakage; suspicious features require human review.
-- Chronological and group-aware correction are currently separate strategies. A combined grouped
-  chronological split is planned after the core workflow is stable.
+- Strict entity-disjoint chronological evaluation is rejected when entity time ranges overlap;
+  users must then choose the deployment assumption they actually need to test.
 - The Day 1 baseline is logistic regression. Model comparison belongs to the product phase.

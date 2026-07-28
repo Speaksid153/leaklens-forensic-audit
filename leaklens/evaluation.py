@@ -54,6 +54,40 @@ def split_indices(
         ordered = np.argsort(timestamps.to_numpy(), kind="stable")
         cut = int(round(len(ordered) * (1 - config.test_size)))
         return ordered[:cut], ordered[cut:]
+    if strategy == "grouped_chronological":
+        if not config.entity_column or not config.time_column:
+            raise ValueError(
+                "grouped_chronological strategy requires entity and time columns"
+            )
+        timestamps = pd.to_datetime(df[config.time_column], errors="coerce")
+        entities = df[config.entity_column]
+        if timestamps.isna().any() or entities.isna().any():
+            raise ValueError(
+                "grouped chronological splitting requires complete entity and time columns"
+            )
+        group_start = timestamps.groupby(entities, observed=True).min().sort_values()
+        target_test_rows = max(1, int(round(len(df) * config.test_size)))
+        selected: list[object] = []
+        selected_rows = 0
+        group_sizes = entities.value_counts()
+        for entity in reversed(group_start.index.tolist()):
+            selected.append(entity)
+            selected_rows += int(group_sizes.loc[entity])
+            if selected_rows >= target_test_rows:
+                break
+        test_mask = entities.isin(selected)
+        train_idx = indices[~test_mask.to_numpy()]
+        test_idx = indices[test_mask.to_numpy()]
+        if len(train_idx) == 0 or len(test_idx) == 0:
+            raise ValueError("grouped chronological split produced an empty partition")
+        train_latest = timestamps.iloc[train_idx].max()
+        test_earliest = timestamps.iloc[test_idx].min()
+        if train_latest >= test_earliest:
+            raise ValueError(
+                "strict grouped chronological splitting is infeasible because entity time ranges "
+                "overlap; choose whether deployment prioritizes unseen entities or future periods"
+            )
+        return train_idx, test_idx
     raise ValueError(f"unknown evaluation strategy: {strategy}")
 
 
@@ -144,6 +178,8 @@ def evaluate(
 
 
 def recommended_strategy(config: DatasetConfig) -> str:
+    if config.time_column and config.entity_column:
+        return "grouped_chronological"
     if config.time_column:
         return "chronological"
     if config.entity_column:

@@ -11,7 +11,7 @@ def loan_default_trap(n_rows: int = 1200, seed: int = 7) -> pd.DataFrame:
 
     rng = np.random.default_rng(seed)
     n_customers = max(100, n_rows // 3)
-    customer_id = rng.integers(0, n_customers, size=n_rows)
+    customer_id = np.repeat(np.arange(n_customers), 3)[:n_rows]
     dates = pd.date_range("2022-01-01", periods=n_rows, freq="D")
     income = rng.lognormal(mean=10.6, sigma=0.45, size=n_rows)
     debt_ratio = np.clip(rng.beta(2.2, 4.0, size=n_rows), 0, 1)
@@ -40,12 +40,15 @@ def readmission_entity_trap(n_patients: int = 400, seed: int = 11) -> pd.DataFra
 
     rng = np.random.default_rng(seed)
     rows: list[dict[str, object]] = []
-    patient_risk = rng.normal(0, 1.2, n_patients)
+    patient_risk = rng.normal(0, 1.5, n_patients)
+    patient_outcome = rng.binomial(1, 1 / (1 + np.exp(-patient_risk)))
     for patient in range(n_patients):
         visits = int(rng.integers(2, 6))
         for visit in range(visits):
             severity = rng.normal(0, 1)
-            probability = 1 / (1 + np.exp(-(-1.2 + patient_risk[patient] + severity)))
+            visit_outcome = patient_outcome[patient]
+            if rng.random() < 0.08:
+                visit_outcome = 1 - visit_outcome
             rows.append(
                 {
                     "patient_id": f"PAT-{patient:04d}",
@@ -53,7 +56,7 @@ def readmission_entity_trap(n_patients: int = 400, seed: int = 11) -> pd.DataFra
                     "age": int(np.clip(rng.normal(58, 16), 18, 95)),
                     "severity_score": round(float(severity), 4),
                     "length_of_stay": int(max(1, rng.poisson(4 + max(severity, 0)))),
-                    "readmitted": int(rng.random() < probability),
+                    "readmitted": int(visit_outcome),
                 }
             )
     return pd.DataFrame(rows)
@@ -64,7 +67,7 @@ def maintenance_temporal_trap(n_rows: int = 1400, seed: int = 19) -> pd.DataFram
 
     rng = np.random.default_rng(seed)
     timestamps = pd.date_range("2023-01-01", periods=n_rows, freq="h")
-    machine = rng.integers(0, 30, n_rows)
+    machine = np.repeat(np.arange(30), int(np.ceil(n_rows / 30)))[:n_rows]
     age = machine * 0.12 + np.linspace(0, 2.5, n_rows)
     vibration = rng.normal(2.5 + age * 0.35, 0.5)
     temperature = rng.normal(65 + age * 2.0, 4.0)
