@@ -37,6 +37,9 @@ Run the interactive application with:
 streamlit run app.py
 ```
 
+On Windows, you can instead double-click `run_leaklens.bat`. Keep the terminal window open while
+using the app. If the browser does not open automatically, visit `http://localhost:8501`.
+
 The product includes:
 
 - guided loan, readmission, maintenance, and clean-control demonstrations;
