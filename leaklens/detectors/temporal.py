@@ -12,7 +12,7 @@ def detect_temporal_mismatch(df: pd.DataFrame, config: DatasetConfig) -> list[Au
         return []
     parsed = pd.to_datetime(df[config.time_column], errors="coerce")
     invalid_fraction = float(parsed.isna().mean())
-    if parsed.notna().nunique() < 2:
+    if parsed.nunique() < 2:
         severity = AuditSeverity.HIGH
         title = "The supplied time column cannot define a chronological split"
         recommendation = "Provide a parseable timestamp with at least two distinct values."
@@ -40,4 +40,3 @@ def detect_temporal_mismatch(df: pd.DataFrame, config: DatasetConfig) -> list[Au
             remediable=True,
         )
     ]
-

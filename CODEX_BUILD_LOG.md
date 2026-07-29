@@ -63,3 +63,35 @@ high-cardinality categories to the identifier audit, and a regression assertion 
 - Readmission ROC-AUC: 0.864 naive versus 0.506 group-aware.
 - Maintenance ROC-AUC: 1.000 naive versus 0.659 entity-disjoint chronological.
 - Clean control: reliability 100, zero findings, and zero metric inflation.
+
+## Day 2 — interactive product
+
+### Goal
+
+Turn the verified audit engine into a public-facing workflow that makes metric inflation legible in
+under three minutes without moving statistical logic into the UI.
+
+### Codex actions
+
+- Added guided demos and configurable CSV upload.
+- Added the three-stage Metric Inflation Waterfall, reliability gauge, evidence cards, and metric
+  comparison.
+- Added reproducible JSON export and conservative upload/data-shape limits.
+- Added Streamlit application tests and pure presentation tests.
+- Ran visual browser QA across Overview, Evidence, Evaluation, Data & export, and CSV upload flows.
+
+### Review-loop corrections
+
+- Replaced a four-column metric row after browser QA exposed horizontal clipping beside the sidebar.
+- Corrected a temporal-detector title that counted unique null-mask values instead of timestamps.
+- Moved the metric-comparison legend after visual QA exposed title/legend crowding.
+- Matched the Streamlit server upload limit to the product's stated 20 MB limit.
+
+### Verification
+
+- `python -m pytest`: 21 passed, including Streamlit interaction tests.
+- `python -m ruff check .`: all checks passed.
+- Python bytecode compilation and dependency validation passed.
+- Guided loan audit rendered reliability 12/100 and exposed ROC-AUC inflation of 0.322.
+- Uploaded clean-control CSV rendered reliability 100/100 and zero inflation.
+- All four result tabs passed visual and semantic browser inspection.

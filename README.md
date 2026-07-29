@@ -27,7 +27,26 @@ python -m pytest
 python -m scripts.generate_demo_data
 ```
 
-The audit engine is intentionally independent of the Streamlit interface planned for Day 2.
+The audit engine remains intentionally independent of the Streamlit interface.
+
+## Day 2 product
+
+Run the interactive application with:
+
+```powershell
+streamlit run app.py
+```
+
+The product includes:
+
+- guided loan, readmission, maintenance, and clean-control demonstrations;
+- CSV upload with explicit target, entity, time, and positive-class configuration;
+- a transparent reliability breakdown;
+- a three-stage Metric Inflation Waterfall;
+- evidence cards with detector-specific remediation;
+- naive-versus-trustworthy metric comparison;
+- data preview and reproducible JSON export;
+- 20 MB, 100,000-row, and 150-column safety limits.
 
 ## Current limitations
 

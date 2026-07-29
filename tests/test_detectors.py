@@ -27,6 +27,8 @@ def test_loan_trap_finds_post_outcome_feature_and_identifier() -> None:
     assert "temporal_mismatch" in by_detector
     assert "collection_status" in suspicious_columns
     assert "application_id" not in suspicious_columns
+    temporal = next(finding for finding in findings if finding.detector == "temporal_mismatch")
+    assert temporal.title == "A random split would allow future observations into training"
 
 
 def test_readmission_trap_finds_entity_overlap() -> None:

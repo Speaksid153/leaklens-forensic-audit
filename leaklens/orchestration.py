@@ -86,6 +86,17 @@ def audit(df: pd.DataFrame, config: DatasetConfig) -> dict[str, Any]:
         recommended_strategy(config),
         excluded_columns=corrected_exclusions,
     )
+    feature_corrected = evaluate(
+        df,
+        config,
+        "stratified_random",
+        excluded_columns=corrected_exclusions,
+    )
+    evaluation_stages = [
+        {"label": "Naive random split", **asdict(naive)},
+        {"label": "Leaky features removed", **asdict(feature_corrected)},
+        {"label": "Trustworthy split", **asdict(trustworthy)},
+    ]
     return {
         "dataset": {
             "rows": len(df),
@@ -97,6 +108,7 @@ def audit(df: pd.DataFrame, config: DatasetConfig) -> dict[str, Any]:
         "reliability": reliability_score(findings),
         "naive_evaluation": asdict(naive),
         "trustworthy_evaluation": asdict(trustworthy),
+        "evaluation_stages": evaluation_stages,
         "metric_inflation": {
             metric: round(naive.metrics[metric] - trustworthy.metrics[metric], 6)
             for metric in naive.metrics

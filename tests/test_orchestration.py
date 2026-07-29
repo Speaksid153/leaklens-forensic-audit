@@ -17,6 +17,13 @@ def test_audit_exposes_metric_inflation_for_loan_trap() -> None:
     assert result["naive_evaluation"]["metrics"]["roc_auc"] > 0.95
     assert result["metric_inflation"]["roc_auc"] > 0.1
     assert result["reliability"]["score"] < 60
+    assert [stage["label"] for stage in result["evaluation_stages"]] == [
+        "Naive random split",
+        "Leaky features removed",
+        "Trustworthy split",
+    ]
+    assert result["evaluation_stages"][0]["metrics"]["roc_auc"] == 1.0
+    assert result["evaluation_stages"][-1]["strategy"] == "grouped_chronological"
 
 
 def test_clean_control_audits_without_critical_penalty() -> None:
