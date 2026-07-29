@@ -13,6 +13,20 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: motion_ui/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: motion_ui
+      - run: pnpm run typecheck
+        working-directory: motion_ui
+      - run: pnpm run build
+        working-directory: motion_ui
       - run: python -m pip install -r requirements.txt
       - run: python -m pip check
       - run: python -m ruff check .
@@ -20,3 +34,4 @@ jobs:
       - run: python -m pytest
       - run: python -m scripts.generate_demo_data
       - run: git diff --exit-code -- demo_data
+      - run: git diff --exit-code -- leaklens/motion_dist

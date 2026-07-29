@@ -8,7 +8,7 @@ may come from leakage, contamination, or an unsuitable split.
 
 **Building Evals** — ChatGPT Codex India Hackathon 2026.
 
-## Day 1 scope
+## Core audit engine
 
 - deterministic flawed and clean demonstration datasets;
 - duplicate, entity-overlap, identifier, suspicious-feature, and temporal detectors;
@@ -29,7 +29,7 @@ python -m scripts.generate_demo_data
 
 The audit engine remains intentionally independent of the Streamlit interface.
 
-## Day 2 product
+## Interactive product
 
 Run the interactive application with:
 
@@ -48,8 +48,30 @@ The product includes:
 - a three-stage Metric Inflation Waterfall;
 - evidence cards with detector-specific remediation;
 - naive-versus-trustworthy metric comparison;
-- data preview and reproducible JSON export;
+- a focused Motion-powered verdict and score-survival sequence with reduced-motion support;
+- data preview, reproducible JSON export, and a standalone offline HTML evidence report;
 - 20 MB, 100,000-row, and 150-column safety limits.
+
+The React/TypeScript Motion component is prebuilt in `leaklens/motion_dist`, so deployment only
+needs the free Python dependencies in `requirements.txt`; no API key or paid service is used.
+Frontend source lives in `motion_ui`. Rebuild it with Node 24 and `pnpm run build` from that folder.
+
+If you previously ran an older Streamlit build on port 8501, close every old LeakLens tab and
+press Ctrl+F5 after relaunching. A stale cached Streamlit frontend cannot communicate correctly
+with the upgraded backend.
+
+## Day 3 release gate
+
+```powershell
+.\.venv\Scripts\python.exe -m pip check
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m compileall -q app.py leaklens scripts tests
+.\.venv\Scripts\python.exe -m pytest
+```
+
+The CI workflow additionally type-checks and rebuilds the Motion bundle, then rejects uncommitted
+bundle drift. This keeps the deployed animation code reproducible rather than relying on a
+developer's local `node_modules` directory.
 
 ## Current limitations
 

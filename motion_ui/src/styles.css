@@ -1,0 +1,24 @@
+:root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: transparent; color: #f8fafc; }
+.ll-shell { display: grid; gap: 14px; padding: 2px; }
+.ll-verdict { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:22px 24px; border:1px solid rgba(56,189,248,.22); border-radius:18px; background:linear-gradient(120deg,rgba(14,116,144,.23),rgba(15,23,42,.78) 55%,rgba(88,28,135,.2)); box-shadow:0 18px 60px rgba(2,8,23,.28); }
+.ll-kicker { color:#67e8f9; font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+h2 { margin:5px 0; font-size:clamp(26px,5vw,42px); line-height:1; letter-spacing:-.04em; }
+p { margin:0; max-width:650px; color:#a8b7cc; line-height:1.5; font-size:14px; }
+.ll-score { flex:0 0 auto; min-width:120px; text-align:right; font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-.05em; color:#e0f2fe; font-variant-numeric:tabular-nums; }
+.ll-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.ll-card,.ll-journey { border:1px solid rgba(148,163,184,.15); border-radius:14px; background:rgba(15,23,42,.7); }
+.ll-card { padding:16px 18px; display:grid; gap:5px; }
+.ll-card span,.ll-journey-head span { color:#94a3b8; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+.ll-card strong { font-size:27px; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+.ll-card small,.ll-journey-head small { color:#64748b; font-size:11px; }
+.ll-journey { padding:17px 18px 18px; display:grid; gap:11px; }
+.ll-journey-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:2px; }
+.ll-stage { display:grid; gap:5px; }
+.ll-stage > div:first-child { display:flex; justify-content:space-between; gap:14px; font-size:12px; color:#cbd5e1; }
+.ll-stage b { font-variant-numeric:tabular-nums; }
+.ll-track { height:7px; overflow:hidden; border-radius:99px; background:rgba(51,65,85,.75); }
+.ll-track div { height:100%; border-radius:inherit; background:linear-gradient(90deg,#38bdf8,#a78bfa); transform-origin:left; }
+@media (max-width:680px) { .ll-verdict { align-items:flex-start; padding:18px; } .ll-score { min-width:auto; font-size:25px; } .ll-metrics { grid-template-columns:1fr; } .ll-journey-head { align-items:flex-start; flex-direction:column; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }

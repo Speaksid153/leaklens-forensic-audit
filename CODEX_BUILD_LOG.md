@@ -111,3 +111,21 @@ dependency checks, compilation, or generated-data reproducibility. Those checks 
 GitHub Actions release gate, and all four guided demonstrations are permanent UI regression cases.
 
 Final post-hardening result: 23 tests passed with a clean deterministic-data diff.
+
+## Day 3 — motion, evidence portability, and release hardening
+
+- Upgraded to Streamlit 1.60 and reran the complete compatibility gate before UI work.
+- Added a React/TypeScript Streamlit v2 component using Motion for verdict entry, metric count-ups,
+  and the evaluation-stage score-survival path.
+- Kept audit computation and native Streamlit controls in Python; the animation layer is purely
+  presentational and respects `prefers-reduced-motion`.
+- Added a self-contained HTML evidence report containing audit findings, reproducibility settings,
+  dependency versions, and a SHA-256 dataset fingerprint.
+- Added frontend type-check/build drift enforcement to CI and committed the prebuilt assets so
+  deployment needs no Node runtime or paid service.
+- Fixed a v2 component registration lifecycle defect exposed by repeated Streamlit AppTest runs.
+- Verified the guided loan audit in a real browser at desktop and 390 px mobile widths with no
+  frontend warnings or errors.
+
+Day 3 verification result: 25 Python tests passed; Ruff, bytecode compilation, TypeScript checking,
+Vite production build, desktop browser QA, mobile browser QA, and HTML export presence all passed.

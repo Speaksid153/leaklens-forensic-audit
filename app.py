@@ -11,6 +11,7 @@ import streamlit as st
 
 from leaklens.contracts import DatasetConfig
 from leaklens.demo_data import DEMO_FACTORIES
+from leaklens.motion_summary import render_motion_summary
 from leaklens.orchestration import audit
 from leaklens.presentation import (
     SEVERITY_LABELS,
@@ -21,6 +22,7 @@ from leaklens.presentation import (
     reliability_gauge,
     severity_value,
 )
+from leaklens.reporting import build_html_report
 
 st.set_page_config(page_title="LeakLens", page_icon="🔍", layout="wide")
 
@@ -117,12 +119,15 @@ def render_header() -> None:
     )
 
 
-def render_results(result: dict[str, Any], frame: pd.DataFrame, source_name: str) -> None:
+def render_results(
+    result: dict[str, Any], frame: pd.DataFrame, source_name: str, config: DatasetConfig
+) -> None:
     reliability = result["reliability"]["score"]
     naive_auc = result["naive_evaluation"]["metrics"]["roc_auc"]
     trusted_auc = result["trustworthy_evaluation"]["metrics"]["roc_auc"]
     inflation = result["metric_inflation"]["roc_auc"]
     st.caption(f"Audit source: {source_name} · {len(frame):,} rows · {len(frame.columns)} columns")
+    render_motion_summary(result)
     top_metrics = st.columns(2)
     bottom_metrics = st.columns(2)
     top_metrics[0].metric("Reliability", f"{reliability}/100")
@@ -143,7 +148,7 @@ def render_results(result: dict[str, Any], frame: pd.DataFrame, source_name: str
         with left:
             st.plotly_chart(
                 reliability_gauge(reliability),
-                use_container_width=True,
+                width="stretch",
                 config={"displayModeBar": False},
             )
             st.subheader("Why the score changed")
@@ -155,7 +160,7 @@ def render_results(result: dict[str, Any], frame: pd.DataFrame, source_name: str
         with right:
             st.plotly_chart(
                 metric_waterfall(result),
-                use_container_width=True,
+                width="stretch",
                 config={"displayModeBar": False},
             )
         st.caption(
@@ -180,7 +185,7 @@ def render_results(result: dict[str, Any], frame: pd.DataFrame, source_name: str
     with evaluation:
         st.plotly_chart(
             metrics_comparison(result),
-            use_container_width=True,
+            width="stretch",
             config={"displayModeBar": False},
         )
         naive = result["naive_evaluation"]
@@ -199,13 +204,20 @@ def render_results(result: dict[str, Any], frame: pd.DataFrame, source_name: str
             st.write(f"**Excluded columns:** {excluded}")
 
     with data:
-        st.dataframe(frame.head(100), use_container_width=True, hide_index=True)
+        st.dataframe(frame.head(100), width="stretch", hide_index=True)
         payload = json.dumps(result, default=lambda value: int(value), indent=2)
         st.download_button(
             "Download reproducible audit JSON",
             payload,
             file_name="leaklens-audit.json",
             mime="application/json",
+        )
+        report = build_html_report(result, frame, config, source_name)
+        st.download_button(
+            "Download standalone evidence report",
+            report,
+            file_name="leaklens-evidence-report.html",
+            mime="text/html",
         )
         st.caption(
             "The export contains the audit configuration, evidence, metrics, and split strategy."
@@ -231,20 +243,21 @@ positive_label = st.sidebar.selectbox(
     "Positive class", labels, index=len(labels) - 1 if labels else 0
 )
 st.sidebar.caption("Binary classification · 25% holdout · deterministic seed 42")
-run = st.sidebar.button("Run forensic audit", type="primary", use_container_width=True)
+run = st.sidebar.button("Run forensic audit", type="primary", width="stretch")
 
 config_signature = (source_name, target, entity, time_column, str(positive_label), len(frame))
+audit_config = DatasetConfig(
+    target=target,
+    entity_column=entity,
+    time_column=time_column,
+    positive_label=positive_label,
+)
 if run:
     try:
         with st.spinner("Testing whether the headline score survives…"):
             result = audit(
                 frame,
-                DatasetConfig(
-                    target=target,
-                    entity_column=entity,
-                    time_column=time_column,
-                    positive_label=positive_label,
-                ),
+                audit_config,
             )
         st.session_state["audit_result"] = result
         st.session_state["audit_signature"] = config_signature
@@ -252,7 +265,7 @@ if run:
         st.error(str(error))
 
 if st.session_state.get("audit_signature") == config_signature:
-    render_results(st.session_state["audit_result"], frame, source_name)
+    render_results(st.session_state["audit_result"], frame, source_name, audit_config)
 else:
     st.markdown("---")
     st.subheader("A defensible score needs an adversarial review.")
