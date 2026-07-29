@@ -95,3 +95,19 @@ under three minutes without moving statistical logic into the UI.
 - Guided loan audit rendered reliability 12/100 and exposed ROC-AUC inflation of 0.322.
 - Uploaded clean-control CSV rendered reliability 100/100 and zero inflation.
 - All four result tabs passed visual and semantic browser inspection.
+
+## Clean-room compatibility audit
+
+- Cloned the committed repository into a new temporary directory.
+- Created a fresh Python 3.12 environment and installed only `requirements.txt`.
+- Verified dependency consistency, lint, compilation, all tests, and deterministic CSV generation.
+- Started the clean-clone Streamlit server and passed its health endpoint.
+- Exercised a real guided audit with no browser or server warnings/errors.
+- Verified desktop and 390 px mobile layouts, including stacked metric cards.
+- Exercised all four guided demonstrations through Streamlit's application test harness.
+
+The audit found no runtime compatibility defect. It did identify a process gap: CI did not enforce
+dependency checks, compilation, or generated-data reproducibility. Those checks are now part of the
+GitHub Actions release gate, and all four guided demonstrations are permanent UI regression cases.
+
+Final post-hardening result: 23 tests passed with a clean deterministic-data diff.
