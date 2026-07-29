@@ -35,7 +35,14 @@ def test_every_guided_audit_renders_complete_results(
     app.selectbox[0].select(demo).run(timeout=30)
     app.button[0].click().run(timeout=30)
     assert not app.exception
-    assert tuple(metric.value for metric in app.metric) == expected_metrics
+    result = app.session_state["audit_result"]
+    rendered_metrics = (
+        f"{result['reliability']['score']}/100",
+        f"{result['naive_evaluation']['metrics']['roc_auc']:.3f}",
+        f"{result['trustworthy_evaluation']['metrics']['roc_auc']:.3f}",
+        f"{result['metric_inflation']['roc_auc']:.3f}",
+    )
+    assert rendered_metrics == expected_metrics
     assert [tab.label for tab in app.tabs] == [
         "Overview",
         f"Evidence ({evidence_count})",

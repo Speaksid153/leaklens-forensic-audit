@@ -129,3 +129,17 @@ Final post-hardening result: 23 tests passed with a clean deterministic-data dif
 
 Day 3 verification result: 25 Python tests passed; Ruff, bytecode compilation, TypeScript checking,
 Vite production build, desktop browser QA, mobile browser QA, and HTML export presence all passed.
+
+### Frontend redesign pass
+
+- Rebuilt the page hierarchy around a visible LeakLens product bar positioned below Streamlit's
+  toolbar, eliminating the header collision reported during hands-on review.
+- Replaced the generic landing page with a responsive audit-protocol hero and three-step launchpad.
+- Reorganized the sidebar into source, experiment-semantics, and run stages.
+- Removed duplicate metric cards, reliability gauge, and waterfall from the Streamlit layer because
+  the Motion summary already communicates those values more clearly.
+- Replaced the overview duplication with concise reliability deductions and decision guidance.
+- Killed four stale local Streamlit processes that were competing for port 8501 and causing the
+  browser to hit an obsolete 1.47 runtime.
+- Revalidated desktop and 390 px mobile layouts, guided-audit execution, Motion results, and server
+  logs. The redesigned build passed all 25 tests with no current runtime warnings.
