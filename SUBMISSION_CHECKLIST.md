@@ -6,7 +6,7 @@ This file is the final handoff for the **ChatGPT Codex India Hackathon 2026**. T
 
 - [x] **Deployed application:** [Open LeakLens](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/~/+/) — public and requires no credentials.
 - [x] **GitHub repository:** [Speaksid153/leaklens-forensic-audit](https://github.com/Speaksid153/leaklens-forensic-audit) — public with visible commit history.
-- [x] **Demo video:** [Watch the 78-second captioned demo](artifacts/LeakLens_Demo_Recording.mp4) — below the three-minute limit and shows the end-to-end product plus Codex planning, implementation, self-review, verification, and release work.
+- [x] **Demo video:** [Watch the public 78-second captioned demo on Google Drive](https://drive.google.com/file/d/1Jwa6wzx2Y9tutOx472jGvAOtuvKR24pu/view?usp=sharing) — below the three-minute limit and shows the end-to-end product plus Codex planning, implementation, self-review, verification, and release work.
 - [x] **Project description:** [Open the public Google Doc](https://docs.google.com/document/d/1928YGvsqkOxb8rpCt_-qwbu2TptmYfdfBDANkP2Zp0E/edit?usp=sharing) — covers the track, problem statement, technical stack, Codex usage, evidence, originality, limitations, and reproducibility.
 
 ## Verified viability gate
@@ -26,7 +26,7 @@ This file is the final handoff for the **ChatGPT Codex India Hackathon 2026**. T
 - **Track:** `Building Evals`
 - **Application:** `https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/~/+/`
 - **Repository:** `https://github.com/Speaksid153/leaklens-forensic-audit`
-- **Demo:** `https://github.com/Speaksid153/leaklens-forensic-audit/raw/refs/heads/main/artifacts/LeakLens_Demo_Recording.mp4`
+- **Demo:** `https://drive.google.com/file/d/1Jwa6wzx2Y9tutOx472jGvAOtuvKR24pu/view?usp=sharing`
 - **Google Doc:** `https://docs.google.com/document/d/1928YGvsqkOxb8rpCt_-qwbu2TptmYfdfBDANkP2Zp0E/edit?usp=sharing`
 
 ## BlockseBlock — manual and irreversible
