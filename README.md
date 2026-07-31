@@ -6,6 +6,8 @@ may come from leakage, contamination, or an unsuitable split.
 
 **Live application:** [leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/)
 
+**Demo video:** [Watch the 68-second 1080p walkthrough](artifacts/LeakLens_Demo_Recording.mp4). The recording uses on-screen captions and has no audio track.
+
 ## Hackathon track
 
 **Building Evals** — ChatGPT Codex India Hackathon 2026.

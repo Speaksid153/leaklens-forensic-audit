@@ -4,7 +4,7 @@
 
 - [ ] Public deployed application opens without credentials.
 - [ ] Public GitHub repository contains visible commit history.
-- [ ] Public demo video is no longer than three minutes.
+- [x] [Public demo video](artifacts/LeakLens_Demo_Recording.mp4) is 68 seconds long.
 - [ ] Public Google Doc covers the track, problem, and technical stack.
 
 ## Viability gate
