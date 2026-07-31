@@ -2,7 +2,7 @@
 
 **An evidence-first forensic auditor for tabular machine-learning evaluation.** LeakLens compares a naive result with a leakage-safe evaluation to reveal when strong performance may come from data contamination, unsuitable splits, or identifier bleed-through.
 
-[![Live application](https://img.shields.io/badge/Live_application-Open_LeakLens-0969da?style=for-the-badge&logo=streamlit&logoColor=white)](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/)
+[![Live application](https://img.shields.io/badge/Live_application-Open_LeakLens-0969da?style=for-the-badge&logo=streamlit&logoColor=white)](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/~/+/)
 [![Demo video](https://img.shields.io/badge/Demo_video-78_seconds-30363d?style=for-the-badge&logo=github&logoColor=white)](artifacts/LeakLens_Demo_Recording.mp4)
 [![Project description](https://img.shields.io/badge/Project_description-Google_Doc-0f9d58?style=for-the-badge&logo=googledocs&logoColor=white)](https://docs.google.com/document/d/1928YGvsqkOxb8rpCt_-qwbu2TptmYfdfBDANkP2Zp0E/edit?usp=sharing)
 
