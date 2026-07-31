@@ -1,7 +1,14 @@
+import pandas as pd
+
 from leaklens.contracts import DatasetConfig
 from leaklens.demo_data import loan_default_trap
 from leaklens.orchestration import audit
-from leaklens.presentation import finding_html, metric_waterfall, reliability_color
+from leaklens.presentation import (
+    finding_html,
+    metric_waterfall,
+    metrics_comparison,
+    reliability_color,
+)
 
 
 def loan_result() -> dict:
@@ -39,3 +46,10 @@ def test_reliability_colors_have_clear_thresholds() -> None:
     assert reliability_color(70) == "#f59e0b"
     assert reliability_color(30) == "#ef4444"
 
+
+def test_infeasible_split_chart_is_labeled_as_a_baseline() -> None:
+    frame = pd.DataFrame({"feature": ["same"] * 100, "target": [0, 1] * 50})
+    figure = metrics_comparison(audit(frame, DatasetConfig(target="target")))
+
+    assert figure.layout.title.text == "Naive evaluation vs conservative baseline"
+    assert figure.data[1].name == "Conservative prevalence baseline"

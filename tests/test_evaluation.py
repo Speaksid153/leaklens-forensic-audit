@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -58,3 +59,42 @@ def test_evaluation_is_reproducible() -> None:
     second = evaluate(frame, config, "stratified_random")
     assert first == second
     assert 0 <= first.metrics["roc_auc"] <= 1
+
+
+def test_group_split_searches_for_class_valid_partitions() -> None:
+    rows = []
+    for group in range(20):
+        target = int(group < 2)
+        rows.extend(
+            {"entity": f"entity-{group}", "feature": row, "target": target}
+            for row in range(10)
+        )
+    frame = pd.DataFrame(rows)
+    config = DatasetConfig(target="target", entity_column="entity")
+    train_idx, test_idx = split_indices(frame, config, "group_aware")
+    assert frame.iloc[train_idx]["target"].nunique() == 2
+    assert frame.iloc[test_idx]["target"].nunique() == 2
+    assert set(frame.iloc[train_idx]["entity"]).isdisjoint(
+        frame.iloc[test_idx]["entity"]
+    )
+
+
+def test_group_split_reports_when_class_valid_partition_is_infeasible() -> None:
+    rows = []
+    for group in range(20):
+        target = int(group == 0)
+        rows.extend(
+            {"entity": f"entity-{group}", "feature": row, "target": target}
+            for row in range(10)
+        )
+    frame = pd.DataFrame(rows)
+    config = DatasetConfig(target="target", entity_column="entity")
+    with pytest.raises(ValueError, match="at least two distinct groups"):
+        split_indices(frame, config, "group_aware")
+
+
+def test_evaluation_ignores_all_missing_features_when_usable_features_remain() -> None:
+    frame = clean_control()
+    frame["empty"] = np.nan
+    result = evaluate(frame, DatasetConfig(target="target"), "stratified_random")
+    assert 0 <= result.metrics["roc_auc"] <= 1

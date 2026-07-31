@@ -39,10 +39,11 @@ def _univariate_auc(series: pd.Series, target: pd.Series) -> float | None:
 def detect_suspicious_features(df: pd.DataFrame, config: DatasetConfig) -> list[AuditFinding]:
     findings: list[AuditFinding] = []
     ignored = {config.target, config.entity_column, config.time_column, None}
+    binary_target = (df[config.target] == config.positive_label).astype(int)
     for column in df.columns:
         if column in ignored:
             continue
-        auc = _univariate_auc(df[column], df[config.target])
+        auc = _univariate_auc(df[column], binary_target)
         if auc is None or np.isnan(auc) or auc < 0.97:
             continue
         severity = AuditSeverity.CRITICAL if auc >= 0.995 else AuditSeverity.HIGH

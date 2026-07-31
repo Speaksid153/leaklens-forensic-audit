@@ -57,3 +57,22 @@ def test_random_categorical_noise_is_not_self_target_encoded() -> None:
     )
     findings = run_detectors(frame, DatasetConfig(target="target"))
     assert not any(finding.detector == "suspicious_feature" for finding in findings)
+
+
+def test_categorical_leakage_supports_string_target_labels() -> None:
+    frame = pd.DataFrame(
+        {
+            "post_outcome_status": ["collected", "current"] * 100,
+            "target": ["yes", "no"] * 100,
+        }
+    )
+    findings = run_detectors(
+        frame, DatasetConfig(target="target", positive_label="yes")
+    )
+    suspicious = [
+        finding
+        for finding in findings
+        if finding.detector == "suspicious_feature"
+    ]
+    assert suspicious
+    assert suspicious[0].affected_columns == ("post_outcome_status",)

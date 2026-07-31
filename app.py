@@ -3,8 +3,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from html import escape
+from numbers import Number
 from typing import Any
 
 import pandas as pd
@@ -21,6 +23,7 @@ from leaklens.presentation import (
     severity_value,
 )
 from leaklens.reporting import build_html_report
+from leaklens.ui_styles import FORENSIC_STYLES
 
 st.set_page_config(page_title="LeakLens", page_icon="🔍", layout="wide")
 
@@ -84,7 +87,7 @@ html, body, [class*="css"] { font-family:Inter,ui-sans-serif,-apple-system,Blink
 @media(max-width:520px) { .block-container { padding-left:1rem; padding-right:1rem; }.product-nav { margin-bottom:2.5rem; }.brand-sub,.local-pill { display:none; }.hero-title { font-size:2.85rem; }.hero-copy { font-size:.94rem; }.hero-grid { gap:30px; }.launch-head { align-items:flex-start; flex-direction:column; } }
 </style>
 """
-st.markdown(STYLES, unsafe_allow_html=True)
+st.markdown(FORENSIC_STYLES, unsafe_allow_html=True)
 
 DEMO_CONFIGS: dict[str, dict[str, Any]] = {
     "Loan default trap": {
@@ -114,13 +117,13 @@ def demo_frame(factory_name: str) -> pd.DataFrame:
     return DEMO_FACTORIES[factory_name]()
 
 
-def load_source() -> tuple[pd.DataFrame, dict[str, Any], str]:
+def load_source() -> tuple[pd.DataFrame, dict[str, Any], str, tuple[str, str]]:
     st.sidebar.markdown('<div class="sidebar-step">01 · Data source</div>', unsafe_allow_html=True)
     source = st.sidebar.radio("Data source", ["Guided demo", "Upload CSV"])
     if source == "Guided demo":
         label = st.sidebar.selectbox("Demonstration", list(DEMO_CONFIGS))
         demo = DEMO_CONFIGS[label]
-        return demo_frame(demo["factory"]), demo, label
+        return demo_frame(demo["factory"]), demo, label, ("demo", label)
     upload = st.sidebar.file_uploader(
         "Upload a CSV", type=["csv"], help="Maximum 20 MB recommended"
     )
@@ -130,12 +133,13 @@ def load_source() -> tuple[pd.DataFrame, dict[str, Any], str]:
     if upload.size > 20 * 1024 * 1024:
         st.error("The uploaded file exceeds the 20 MB Day 2 safety limit.")
         st.stop()
+    content_digest = hashlib.sha256(upload.getvalue()).hexdigest()
     try:
         frame = pd.read_csv(upload)
     except Exception as error:
         st.error(f"The CSV could not be read: {error}")
         st.stop()
-    return frame, {}, upload.name
+    return frame, {}, upload.name, ("upload", content_digest)
 
 
 def optional_column(label: str, columns: list[str], default: str | None) -> str | None:
@@ -145,30 +149,52 @@ def optional_column(label: str, columns: list[str], default: str | None) -> str 
     return None if selected == "— None —" else selected
 
 
+def preferred_positive_index(labels: list[Any]) -> int:
+    """Choose a predictable positive class without depending on CSV row order."""
+
+    for index, label in enumerate(labels):
+        if (isinstance(label, bool) or isinstance(label, Number)) and label == 1:
+            return index
+
+    preferred_strings = ("1", "yes", "true", "positive")
+    normalized_strings = {
+        str(label).strip().casefold(): index
+        for index, label in enumerate(labels)
+        if isinstance(label, str)
+    }
+    for preferred in preferred_strings:
+        if preferred in normalized_strings:
+            return normalized_strings[preferred]
+
+    return max(
+        range(len(labels)),
+        key=lambda index: (type(labels[index]).__name__, repr(labels[index])),
+        default=0,
+    )
+
+
 def render_header() -> None:
     st.markdown(
         """
         <nav class="product-nav">
           <div class="brand"><div class="brand-mark"><div class="brand-lens"></div></div>
-            <div><div class="brand-name">LeakLens</div><div class="brand-sub">Evaluation integrity lab</div></div>
+            <div><div class="brand-name">LeakLens</div><div class="brand-sub">Forensic auditing</div></div>
           </div>
-          <div class="local-pill"><span class="local-dot"></span>Runs locally · No API keys</div>
+          <div class="local-pill"><span class="local-dot"></span>System ready · Local runtime</div>
         </nav>
-        <section class="hero-grid">
+        <section class="workspace-intro">
           <div>
             <div class="eyebrow">Forensic ML evaluation</div>
-            <h1 class="hero-title">Your model score<br>may be <span class="accent">lying.</span></h1>
-            <p class="hero-copy">LeakLens stress-tests tabular classification experiments for leakage,
-            entity contamination, identifier memorization, and invalid temporal splits—then rebuilds
-            the evaluation under defensible assumptions.</p>
-            <div class="trust-row"><span>Deterministic</span><span>Evidence-first</span><span>Fully offline</span></div>
+            <h1>Evaluation integrity workbench</h1>
+            <p>Challenge a tabular classifier's headline score, trace contamination paths, and
+            rebuild the experiment under defensible split rules. Deterministic, evidence-first,
+            and fully offline.</p>
           </div>
-          <aside class="flow-card">
-            <div class="flow-head"><span>Audit protocol</span><span class="flow-badge">3 stages</span></div>
-            <div class="flow-step"><span class="flow-num">01</span><div><strong>Reproduce</strong><small>Measure the tempting score</small></div><span class="flow-state"></span></div>
-            <div class="flow-step"><span class="flow-num">02</span><div><strong>Interrogate</strong><small>Expose contamination paths</small></div><span class="flow-state"></span></div>
-            <div class="flow-step"><span class="flow-num">03</span><div><strong>Re-evaluate</strong><small>Apply a trustworthy split</small></div><span class="flow-state"></span></div>
-          </aside>
+          <div class="protocol-strip" aria-label="Three-stage audit protocol">
+            <div class="protocol-step"><span>01</span><b>Reproduce</b></div>
+            <div class="protocol-step"><span>02</span><b>Interrogate</b></div>
+            <div class="protocol-step"><span>03</span><b>Re-evaluate</b></div>
+          </div>
         </section>
         """,
         unsafe_allow_html=True,
@@ -177,8 +203,9 @@ def render_header() -> None:
 
 def render_sidebar_header() -> None:
     st.sidebar.markdown(
-        '<div class="sidebar-brand"><div class="sidebar-title">Configure audit</div>'
-        '<div class="mini">Define what your deployment will actually see.</div></div>',
+        '<div class="sidebar-brand"><div class="sidebar-mark"><div class="brand-lens"></div></div>'
+        '<div><div class="sidebar-title">LeakLens</div>'
+        '<div class="mini">Forensic auditing</div></div></div>',
         unsafe_allow_html=True,
     )
 
@@ -216,13 +243,31 @@ def render_results(
             )
         with right:
             trusted = result["trustworthy_evaluation"]
+            trustworthy_note = result.get("trustworthy_note")
             excluded = ", ".join(trusted["excluded_columns"]) or "None"
-            verdict = "Proceed to domain review" if reliability >= 80 else "Do not trust the headline score"
+            verdict = (
+                "Do not claim model performance"
+                if trustworthy_note
+                else (
+                    "Proceed to domain review"
+                    if reliability >= 80
+                    else "Do not trust the headline score"
+                )
+            )
+            if trustworthy_note:
+                strategy_guidance = (
+                    f"<p>{escape(trustworthy_note)}</p>"
+                    f"<p><strong>Excluded:</strong> {escape(excluded)}</p>"
+                )
+            else:
+                strategy_guidance = (
+                    f"<p>The defensible rerun used a "
+                    f"<strong>{escape(trusted['strategy'].replace('_', ' ').title())}</strong> "
+                    f"strategy.</p><p><strong>Excluded:</strong> {escape(excluded)}</p>"
+                )
             st.markdown(
                 f'<div class="verdict-panel"><div class="label">Decision guidance</div>'
-                f'<h3>{verdict}</h3><p>The defensible rerun used a '
-                f'<strong>{escape(trusted["strategy"].replace("_", " ").title())}</strong> split.</p>'
-                f'<p><strong>Excluded:</strong> {escape(excluded)}</p>'
+                f"<h3>{verdict}</h3>{strategy_guidance}"
                 '<p>Review the evidence with a domain owner before changing production features or '
                 'claiming model performance.</p></div>',
                 unsafe_allow_html=True,
@@ -261,11 +306,17 @@ def render_results(
             st.write(f"**Rows:** {naive['train_rows']:,} train / {naive['test_rows']:,} test")
             st.write("**Excluded columns:** None")
         with col_b:
-            st.subheader("Trustworthy rerun")
+            st.subheader(
+                "Conservative baseline"
+                if result.get("trustworthy_note")
+                else "Trustworthy rerun"
+            )
             st.write(f"**Strategy:** {trusted['strategy'].replace('_', ' ').title()}")
             st.write(f"**Rows:** {trusted['train_rows']:,} train / {trusted['test_rows']:,} test")
             excluded = ", ".join(trusted["excluded_columns"]) or "None"
             st.write(f"**Excluded columns:** {excluded}")
+            if result.get("trustworthy_note"):
+                st.warning(result["trustworthy_note"])
 
     with data:
         st.dataframe(frame.head(100), width="stretch", hide_index=True)
@@ -290,7 +341,11 @@ def render_results(
 
 render_header()
 render_sidebar_header()
-frame, defaults, source_name = load_source()
+frame, defaults, source_name, source_identity = load_source()
+if st.session_state.get("active_source_identity") != source_identity:
+    st.session_state.pop("audit_result", None)
+    st.session_state.pop("audit_signature", None)
+    st.session_state["active_source_identity"] = source_identity
 if len(frame) > 100_000:
     st.error("This Day 2 build supports up to 100,000 rows per audit.")
     st.stop()
@@ -306,13 +361,20 @@ entity = optional_column("Entity column", columns, defaults.get("entity"))
 time_column = optional_column("Time column", columns, defaults.get("time"))
 labels = frame[target].dropna().unique().tolist()
 positive_label = st.sidebar.selectbox(
-    "Positive class", labels, index=len(labels) - 1 if labels else 0
+    "Positive class", labels, index=preferred_positive_index(labels)
 )
 st.sidebar.caption("Binary classification · 25% holdout · deterministic seed 42")
 st.sidebar.markdown('<div class="sidebar-step">03 · Run audit</div>', unsafe_allow_html=True)
 run = st.sidebar.button("Run forensic audit", type="primary", width="stretch")
 
-config_signature = (source_name, target, entity, time_column, str(positive_label), len(frame))
+config_signature = (
+    source_identity,
+    target,
+    entity,
+    time_column,
+    type(positive_label).__name__,
+    repr(positive_label),
+)
 audit_config = DatasetConfig(
     target=target,
     entity_column=entity,
@@ -337,14 +399,17 @@ else:
     st.markdown(
         """
         <section class="launchpad">
-          <div class="launch-head"><div><div class="eyebrow">Ready when you are</div>
-            <h2>Turn a score into an evidence trail.</h2></div>
-            <p>Configure the experiment in the sidebar, then run the forensic audit.</p>
-          </div>
-          <div class="launch-grid">
-            <div class="launch-item"><span>01 / SOURCE</span><strong>Choose the evidence</strong><p>Start with a guided failure mode or upload your own CSV.</p></div>
-            <div class="launch-item"><span>02 / SEMANTICS</span><strong>Define reality</strong><p>Identify the target, entity, time, and positive class.</p></div>
-            <div class="launch-item"><span>03 / AUDIT</span><strong>Challenge the score</strong><p>Compare the naive result with a defensible rerun.</p></div>
+          <div class="ready-card">
+            <div class="ready-icon"><div class="brand-lens"></div></div>
+            <div class="eyebrow">Awaiting input</div>
+            <h2>Ready to audit.</h2>
+            <p>Configure the real deployment semantics in the sidebar, then run the forensic
+            protocol. LeakLens will preserve the tempting baseline and expose what survives.</p>
+            <div class="launch-grid">
+              <div class="launch-item"><span>01 / SOURCE</span><strong>Choose evidence</strong><p>Use a guided failure mode or upload a CSV.</p></div>
+              <div class="launch-item"><span>02 / SEMANTICS</span><strong>Define reality</strong><p>Set target, entity, time, and positive class.</p></div>
+              <div class="launch-item"><span>03 / AUDIT</span><strong>Challenge the score</strong><p>Compare the naive run with defensible controls.</p></div>
+            </div>
           </div>
         </section>
         """,

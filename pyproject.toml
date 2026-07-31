@@ -2,7 +2,7 @@
 name = "leaklens"
 version = "0.1.0"
 description = "Evidence-first forensic audits for tabular ML evaluation"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -14,4 +14,3 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
-

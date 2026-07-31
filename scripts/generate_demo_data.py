@@ -2,13 +2,13 @@
 
 from pathlib import Path
 
-from leaklens.demo_data import DEMO_FACTORIES
+from leaklens.demo_data import DEMO_FACTORIES, SYNTHETIC_FACTORIES
 
 
 def main() -> None:
     output = Path("demo_data")
     output.mkdir(exist_ok=True)
-    for name, factory in DEMO_FACTORIES.items():
+    for name, factory in {**DEMO_FACTORIES, **SYNTHETIC_FACTORIES}.items():
         frame = factory()
         path = output / f"{name}.csv"
         frame.to_csv(path, index=False)
@@ -17,4 +17,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

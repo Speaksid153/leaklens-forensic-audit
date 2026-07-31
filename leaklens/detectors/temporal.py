@@ -10,7 +10,7 @@ from leaklens.contracts import AuditFinding, AuditSeverity, DatasetConfig
 def detect_temporal_mismatch(df: pd.DataFrame, config: DatasetConfig) -> list[AuditFinding]:
     if not config.time_column:
         return []
-    parsed = pd.to_datetime(df[config.time_column], errors="coerce")
+    parsed = pd.to_datetime(df[config.time_column], errors="coerce", format="mixed")
     invalid_fraction = float(parsed.isna().mean())
     if parsed.nunique() < 2:
         severity = AuditSeverity.HIGH

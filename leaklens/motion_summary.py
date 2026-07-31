@@ -31,10 +31,13 @@ def render_motion_summary(result: dict[str, Any]) -> None:
         data={
             "reliability": int(result["reliability"]["score"]),
             "naiveAuc": float(result["naive_evaluation"]["metrics"]["roc_auc"]),
-            "trustedAuc": float(result["trustworthy_evaluation"]["metrics"]["roc_auc"]),
-            "inflation": float(result["metric_inflation"]["roc_auc"]),
+            "comparisonAuc": float(
+                result["trustworthy_evaluation"]["metrics"]["roc_auc"]
+            ),
+            "comparisonGap": float(result["metric_inflation"]["roc_auc"]),
             "stages": stages,
             "findingCount": len(result["findings"]),
+            "fallback": bool(result.get("trustworthy_note")),
         },
         height="content",
     )

@@ -99,6 +99,7 @@ def metric_waterfall(result: dict[str, Any], metric: str = "roc_auc") -> go.Figu
 def metrics_comparison(result: dict[str, Any]) -> go.Figure:
     naive = result["naive_evaluation"]["metrics"]
     trusted = result["trustworthy_evaluation"]["metrics"]
+    fallback = bool(result.get("trustworthy_note"))
     metrics = ["balanced_accuracy", "f1", "roc_auc", "pr_auc"]
     labels = [metric.replace("_", " ").title() for metric in metrics]
     figure = go.Figure(
@@ -110,7 +111,11 @@ def metrics_comparison(result: dict[str, Any]) -> go.Figure:
                 marker_color="#38bdf8",
             ),
             go.Bar(
-                name="Trustworthy evaluation",
+                name=(
+                    "Conservative prevalence baseline"
+                    if fallback
+                    else "Trustworthy evaluation"
+                ),
                 x=labels,
                 y=[trusted[m] for m in metrics],
                 marker_color="#a78bfa",
@@ -119,7 +124,11 @@ def metrics_comparison(result: dict[str, Any]) -> go.Figure:
     )
     figure.update_layout(
         barmode="group",
-        title="Naive vs trustworthy evaluation",
+        title=(
+            "Naive evaluation vs conservative baseline"
+            if fallback
+            else "Naive vs trustworthy evaluation"
+        ),
         yaxis={"range": [0, 1.05], "title": "Score"},
         height=420,
         margin={"l": 20, "r": 20, "t": 55, "b": 20},

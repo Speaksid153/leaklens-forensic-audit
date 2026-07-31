@@ -25,6 +25,10 @@ entity time ranges overlap, strict temporal ordering and entity disjointness can
 without discarding data. LeakLens rejects that configuration rather than silently weakening the
 evaluation contract.
 
+When corrected feature duplicates cannot form class-valid, group-disjoint partitions, LeakLens
+does not present a contaminated random split as trustworthy. It reports the infeasibility and
+shows a non-memorizing prevalence baseline as a conservative reference.
+
 ## Interpretation
 
 Near-perfect univariate performance is labeled *suspected* leakage. Domain knowledge is required

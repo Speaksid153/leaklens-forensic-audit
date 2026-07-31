@@ -10,7 +10,7 @@ def loan_default_trap(n_rows: int = 1200, seed: int = 7) -> pd.DataFrame:
     """Loan data with a post-outcome feature, repeated customers, and time drift."""
 
     rng = np.random.default_rng(seed)
-    n_customers = max(100, n_rows // 3)
+    n_customers = max(100, int(np.ceil(n_rows / 3)))
     customer_id = np.repeat(np.arange(n_customers), 3)[:n_rows]
     dates = pd.date_range("2022-01-01", periods=n_rows, freq="D")
     income = rng.lognormal(mean=10.6, sigma=0.45, size=n_rows)
@@ -99,9 +99,27 @@ def clean_control(n_rows: int = 1200, seed: int = 23) -> pd.DataFrame:
     return pd.DataFrame({"feature_a": x1, "feature_b": x2, "region": category, "target": target})
 
 
+def synthetic_clean_example() -> pd.DataFrame:
+    """Compact upload fixture with useful signal and no deliberate leakage."""
+
+    return clean_control(n_rows=400, seed=23)
+
+
+def synthetic_leaky_example() -> pd.DataFrame:
+    """Compact upload fixture that deterministically triggers every detector."""
+
+    base = loan_default_trap(n_rows=600, seed=7)
+    return pd.concat([base, base.iloc[:20]], ignore_index=True)
+
+
 DEMO_FACTORIES = {
     "loan_default": loan_default_trap,
     "readmission": readmission_entity_trap,
     "predictive_maintenance": maintenance_temporal_trap,
     "clean_control": clean_control,
+}
+
+SYNTHETIC_FACTORIES = {
+    "leaklens_clean_example": synthetic_clean_example,
+    "leaklens_leaky_example": synthetic_leaky_example,
 }
