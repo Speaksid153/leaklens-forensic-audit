@@ -4,6 +4,8 @@ LeakLens is an evidence-first forensic auditor for tabular machine-learning eval
 compares a naive result with a safer evaluation and shows where apparently strong performance
 may come from leakage, contamination, or an unsuitable split.
 
+**Live application:** [leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/)
+
 ## Hackathon track
 
 **Building Evals** — ChatGPT Codex India Hackathon 2026.
