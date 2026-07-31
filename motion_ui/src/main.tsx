@@ -22,6 +22,9 @@ type SummaryData = {
   stages: Stage[];
   findingCount: number;
   fallback: boolean;
+  verdictCopy: string;
+  gapLabel: string;
+  gapNote: string;
 };
 
 type Tone = "safe" | "review" | "critical";
@@ -164,10 +167,6 @@ function AuditSummary({ data }: { data: SummaryData }) {
   const comparisonNote = data.fallback
     ? "Duplicate-safe holdout unavailable"
     : "After defensible controls";
-  const gapLabel = data.fallback ? "Naive-to-baseline gap" : "Exposed AUC gap";
-  const gapNote = data.fallback
-    ? "Not a trustworthy inflation estimate"
-    : "Performance that did not survive";
   const summaryKey = [
     data.reliability,
     data.naiveAuc,
@@ -210,13 +209,7 @@ function AuditSummary({ data }: { data: SummaryData }) {
                 <span className={`ll-status ll-status--${tone}`}>{status}</span>
               </div>
               <ReliabilityRing value={data.reliability} tone={tone} />
-              <p>
-                {data.fallback
-                  ? "No duplicate-safe model holdout can be formed. Treat the comparison as a conservative reference."
-                  : data.reliability >= 80
-                    ? "The configured evaluation survived LeakLens's integrity checks."
-                    : "The headline score did not survive the configured integrity controls."}
-              </p>
+              <p>{data.verdictCopy}</p>
             </motion.article>
 
             <motion.div
@@ -237,9 +230,9 @@ function AuditSummary({ data }: { data: SummaryData }) {
                 tone={tone === "critical" ? "critical" : undefined}
               />
               <MetricCard
-                label={gapLabel}
+                label={data.gapLabel}
                 value={data.comparisonGap}
-                note={gapNote}
+                note={data.gapNote}
                 tone={data.comparisonGap > 0.1 ? "critical" : undefined}
               />
               <MetricCard

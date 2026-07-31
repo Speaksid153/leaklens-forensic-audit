@@ -16181,13 +16181,13 @@ function nu({
   );
 }
 function w2({ data: i }) {
-  const l = gf(), u = i.fallback ? "Split infeasible" : i.reliability >= 80 ? "Defensible" : i.reliability >= 60 ? "Review required" : "Compromised", o = i.fallback ? "review" : i.reliability >= 80 ? "safe" : i.reliability >= 60 ? "review" : "critical", c = i.fallback ? "Conservative baseline" : "Trusted ROC-AUC", d = i.fallback ? "Duplicate-safe holdout unavailable" : "After defensible controls", h = i.fallback ? "Naive-to-baseline gap" : "Exposed AUC gap", p = i.fallback ? "Not a trustworthy inflation estimate" : "Performance that did not survive", g = [
+  const l = gf(), u = i.fallback ? "Split infeasible" : i.reliability >= 80 ? "Defensible" : i.reliability >= 60 ? "Review required" : "Compromised", o = i.fallback ? "review" : i.reliability >= 80 ? "safe" : i.reliability >= 60 ? "review" : "critical", c = i.fallback ? "Conservative baseline" : "Trusted ROC-AUC", d = i.fallback ? "Duplicate-safe holdout unavailable" : "After defensible controls", h = [
     i.reliability,
     i.naiveAuc,
     i.comparisonAuc,
     i.findingCount,
     Number(i.fallback)
-  ].join("-"), m = {
+  ].join("-"), p = {
     hidden: {},
     show: {
       transition: {
@@ -16222,7 +16222,7 @@ function w2({ data: i }) {
                       /* @__PURE__ */ nt.jsx("span", { className: `ll-status ll-status--${o}`, children: u })
                     ] }),
                     /* @__PURE__ */ nt.jsx(L2, { value: i.reliability, tone: o }),
-                    /* @__PURE__ */ nt.jsx("p", { children: i.fallback ? "No duplicate-safe model holdout can be formed. Treat the comparison as a conservative reference." : i.reliability >= 80 ? "The configured evaluation survived LeakLens's integrity checks." : "The headline score did not survive the configured integrity controls." })
+                    /* @__PURE__ */ nt.jsx("p", { children: i.verdictCopy })
                   ]
                 }
               ),
@@ -16230,7 +16230,7 @@ function w2({ data: i }) {
                 bi.div,
                 {
                   className: "ll-metrics",
-                  variants: m,
+                  variants: p,
                   initial: "hidden",
                   animate: "show",
                   children: [
@@ -16254,9 +16254,9 @@ function w2({ data: i }) {
                     /* @__PURE__ */ nt.jsx(
                       nu,
                       {
-                        label: h,
+                        label: i.gapLabel,
                         value: i.comparisonGap,
-                        note: p,
+                        note: i.gapNote,
                         tone: i.comparisonGap > 0.1 ? "critical" : void 0
                       }
                     ),
@@ -16289,41 +16289,41 @@ function w2({ data: i }) {
                     ] }),
                     /* @__PURE__ */ nt.jsx("span", { className: `ll-status ll-status--${o}`, children: u })
                   ] }),
-                  /* @__PURE__ */ nt.jsx("div", { className: "ll-stage-list", children: i.stages.map((v, S) => /* @__PURE__ */ nt.jsxs("div", { className: "ll-stage", children: [
+                  /* @__PURE__ */ nt.jsx("div", { className: "ll-stage-list", children: i.stages.map((g, m) => /* @__PURE__ */ nt.jsxs("div", { className: "ll-stage", children: [
                     /* @__PURE__ */ nt.jsxs("div", { className: "ll-stage-meta", children: [
-                      /* @__PURE__ */ nt.jsx("span", { children: v.label }),
-                      /* @__PURE__ */ nt.jsx("b", { children: v.value.toFixed(3) })
+                      /* @__PURE__ */ nt.jsx("span", { children: g.label }),
+                      /* @__PURE__ */ nt.jsx("b", { children: g.value.toFixed(3) })
                     ] }),
                     /* @__PURE__ */ nt.jsx(
                       "div",
                       {
                         className: "ll-track",
                         role: "progressbar",
-                        "aria-label": `${v.label} ROC-AUC`,
+                        "aria-label": `${g.label} ROC-AUC`,
                         "aria-valuemin": 0,
                         "aria-valuemax": 1,
-                        "aria-valuenow": v.value,
+                        "aria-valuenow": g.value,
                         children: /* @__PURE__ */ nt.jsx(
                           bi.div,
                           {
-                            initial: { scaleX: l ? v.value : 0 },
-                            animate: { scaleX: v.value },
+                            initial: { scaleX: l ? g.value : 0 },
+                            animate: { scaleX: g.value },
                             transition: {
                               duration: l ? 0 : 0.65,
-                              delay: l ? 0 : 0.22 + S * 0.08,
+                              delay: l ? 0 : 0.22 + m * 0.08,
                               ease: [0.22, 1, 0.36, 1]
                             }
                           }
                         )
                       }
                     )
-                  ] }, `${v.label}-${S}`)) })
+                  ] }, `${g.label}-${m}`)) })
                 ]
               }
             )
           ]
         },
-        g
+        h
       ) })
     }
   );
