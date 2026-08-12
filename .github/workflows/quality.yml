@@ -20,13 +20,19 @@ jobs:
         with:
           node-version: "24"
           cache: pnpm
-          cache-dependency-path: motion_ui/pnpm-lock.yaml
+          cache-dependency-path: |
+            motion_ui/pnpm-lock.yaml
+            web_ui/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
         working-directory: motion_ui
       - run: pnpm run typecheck
         working-directory: motion_ui
       - run: pnpm run build
         working-directory: motion_ui
+      - run: pnpm install --frozen-lockfile
+        working-directory: web_ui
+      - run: pnpm run build
+        working-directory: web_ui
       - run: python -m pip install -r requirements.txt
       - run: python -m pip check
       - run: python -m ruff check .

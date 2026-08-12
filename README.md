@@ -2,7 +2,8 @@
 
 **An evidence-first forensic auditor for tabular machine-learning evaluation.** LeakLens compares a naive result with a leakage-safe evaluation to reveal when strong performance may come from data contamination, unsuitable splits, or identifier bleed-through.
 
-[![Live application](https://img.shields.io/badge/Live_application-Open_LeakLens-0969da?style=for-the-badge&logo=streamlit&logoColor=white)](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/~/+/)
+[![Always-on browser application](https://img.shields.io/badge/Live_application-Open_LeakLens-0969da?style=for-the-badge&logo=github&logoColor=white)](https://speaksid153.github.io/leaklens-forensic-audit/)
+[![Streamlit fallback](https://img.shields.io/badge/Streamlit-fallback-30363d?style=for-the-badge&logo=streamlit&logoColor=white)](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/)
 [![Demo video](https://img.shields.io/badge/Demo_video-78_seconds-30363d?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1Jwa6wzx2Y9tutOx472jGvAOtuvKR24pu/view?usp=sharing)
 [![Project description](https://img.shields.io/badge/Project_description-Google_Doc-0f9d58?style=for-the-badge&logo=googledocs&logoColor=white)](https://docs.google.com/document/d/1928YGvsqkOxb8rpCt_-qwbu2TptmYfdfBDANkP2Zp0E/edit?usp=sharing)
 
@@ -20,6 +21,8 @@
 > [!IMPORTANT]
 > **Building Evals track — ChatGPT Codex India Hackathon 2026**<br>
 > Public, offline-first, and built entirely with free and open-source resources. No API key, paid model, chatbot, or external AI service is required at runtime.
+
+The primary deployment is an always-on GitHub Pages application. Python, pandas, and scikit-learn run locally inside the visitor's browser through WebAssembly; uploaded datasets are not sent to an application server. The Streamlit deployment remains available as a compatibility fallback.
 
 ## Core audit engine
 
@@ -48,7 +51,7 @@ py -3.12 -m venv .venv
 > [!NOTE]
 > LeakLens supports Python 3.11–3.13. Python 3.12 is the recommended reproducible Windows environment. The pinned NumPy version is not compatible with Python 3.14.
 
-## Running the application
+## Running the Streamlit application
 
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run app.py
@@ -78,7 +81,22 @@ On Windows, you can instead double-click [`run_leaklens.bat`](run_leaklens.bat).
 ![100,000 rows maximum](https://img.shields.io/badge/rows-100%2C000_max-30363d)
 ![150 columns maximum](https://img.shields.io/badge/columns-150_max-30363d)
 
-## Frontend
+## Frontends
+
+### Browser-native GitHub Pages application
+
+The production browser application lives in [`web_ui`](web_ui). It uses React and Motion for the interface and loads the same Python audit modules from [`leaklens`](leaklens) into Pyodide. This preserves detector and evaluation parity without a server process.
+
+```powershell
+cd web_ui
+pnpm install --frozen-lockfile
+pnpm run build
+pnpm run preview
+```
+
+Every push to `main` that changes the browser UI, audit engine, or demo data triggers [the Pages deployment workflow](.github/workflows/pages.yml). GitHub Pages serves the resulting static build without an inactivity sleep cycle.
+
+### Streamlit component
 
 The React/TypeScript Motion component is prebuilt in [`leaklens/motion_dist`](leaklens/motion_dist). Production deployment therefore needs only the free Python dependencies in [`requirements.txt`](requirements.txt)—no Node runtime, API key, or paid service.
 
@@ -116,7 +134,7 @@ The exact column selections and expected results are documented in [`demo_data/R
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-The [GitHub Actions workflow](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/quality.yml) also type-checks and rebuilds the Motion bundle, regenerates the demo data, and rejects bundle or dataset drift. The deployed animation code is reproducible and independent of a developer's local `node_modules` directory.
+The [GitHub Actions workflow](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/quality.yml) type-checks and builds both frontends, regenerates the demo data, and rejects bundle or dataset drift. The deployed animation code is reproducible and independent of a developer's local `node_modules` directory.
 
 ## Current limitations
 
@@ -124,6 +142,7 @@ The [GitHub Actions workflow](https://github.com/Speaksid153/leaklens-forensic-a
 - Statistical evidence cannot prove semantic leakage; suspicious features require human review.
 - Strict entity-disjoint chronological evaluation is rejected when entity time ranges overlap. Users must choose the deployment assumption they actually need to test.
 - The comparison model is intentionally logistic regression. Multi-model comparison belongs to a later product phase.
+- The first browser-native visit downloads and caches the scientific Python runtime; startup is slower than subsequent visits.
 
 ## Methodology and submission material
 

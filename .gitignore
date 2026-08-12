@@ -8,3 +8,5 @@ __pycache__/
 .tools/
 artifacts/
 motion_ui/node_modules/
+web_ui/node_modules/
+web_ui/dist/
