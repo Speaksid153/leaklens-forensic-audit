@@ -1,6 +1,6 @@
 # 🔍 LeakLens
 
-**An evidence-first forensic auditor for tabular machine-learning evaluation.** LeakLens compares a naive result with a leakage-safe evaluation to reveal when strong performance may come from data contamination, unsuitable splits, or identifier bleed-through.
+**An evidence-first forensic auditor for tabular machine-learning evaluation.** LeakLens compares a naive result with a leakage-controlled evaluation to reveal when strong performance may come from data contamination, unsuitable splits, or identifier bleed-through.
 
 [![Always-on browser application](https://img.shields.io/badge/Live_application-Open_LeakLens-0969da?style=for-the-badge&logo=github&logoColor=white)](https://speaksid153.github.io/leaklens-forensic-audit/)
 [![Streamlit fallback](https://img.shields.io/badge/Streamlit-fallback-30363d?style=for-the-badge&logo=streamlit&logoColor=white)](https://leaklens-forensic-audit-ory9f3bzappgezlbszpn4kd.streamlit.app/)
@@ -15,12 +15,12 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111827)
 ![Motion](https://img.shields.io/badge/Motion-12-FFF312?logo=framer&logoColor=111827)
-![pytest](https://img.shields.io/badge/pytest-55_tests-0A9EDC?logo=pytest&logoColor=white)
+![pytest](https://img.shields.io/badge/pytest-56_tests-0A9EDC?logo=pytest&logoColor=white)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/Speaksid153/leaklens-forensic-audit/quality.yml?branch=main&label=quality&logo=githubactions)](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/quality.yml)
 
 > [!IMPORTANT]
 > **Building Evals track — ChatGPT Codex India Hackathon 2026**<br>
-> Public, offline-first, and built entirely with free and open-source resources. No API key, paid model, chatbot, or external AI service is required at runtime.
+> Public, local-first, and built entirely with free and open-source resources. No API key, paid model, chatbot, or external AI service is required at runtime.
 
 The primary deployment is an always-on GitHub Pages application. Python, pandas, and scikit-learn run locally inside the visitor's browser through WebAssembly; uploaded datasets are not sent to an application server. The Streamlit deployment remains available as a compatibility fallback.
 
@@ -51,6 +51,8 @@ py -3.12 -m venv .venv
 > [!NOTE]
 > LeakLens supports Python 3.11–3.13. Python 3.12 is the recommended reproducible Windows environment. The pinned NumPy version is not compatible with Python 3.14.
 
+Dependency versions are compiled from [`requirements.in`](requirements.in). Contributors can refresh the cross-platform lock deterministically with `uv pip compile --universal requirements.in --output-file requirements.txt`; application setup should continue to install [`requirements.txt`](requirements.txt).
+
 ## Running the Streamlit application
 
 ```powershell
@@ -72,7 +74,7 @@ On Windows, you can instead double-click [`run_leaklens.bat`](run_leaklens.bat).
   </tr>
   <tr>
     <td width="33%"><strong>🔬 Evidence cards</strong><br><sub>Detector-specific findings with remediation guidance.</sub></td>
-    <td width="33%"><strong>⚖️ Metric comparison</strong><br><sub>Side-by-side naive and trustworthy results.</sub></td>
+    <td width="33%"><strong>⚖️ Metric comparison</strong><br><sub>Side-by-side naive and controlled results.</sub></td>
     <td width="33%"><strong>📦 Evidence export</strong><br><sub>Reproducible JSON and standalone offline HTML reports.</sub></td>
   </tr>
 </table>
@@ -80,6 +82,7 @@ On Windows, you can instead double-click [`run_leaklens.bat`](run_leaklens.bat).
 ![20 MB maximum](https://img.shields.io/badge/upload-20_MB_max-30363d)
 ![100,000 rows maximum](https://img.shields.io/badge/rows-100%2C000_max-30363d)
 ![150 columns maximum](https://img.shields.io/badge/columns-150_max-30363d)
+![2,000,000 cells maximum](https://img.shields.io/badge/cells-2%2C000%2C000_max-30363d)
 
 ## Frontends
 

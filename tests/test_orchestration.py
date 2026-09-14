@@ -24,7 +24,7 @@ def test_audit_exposes_metric_inflation_for_loan_trap() -> None:
     assert [stage["label"] for stage in result["evaluation_stages"]] == [
         "Naive random split",
         "Leaky features removed",
-        "Trustworthy split",
+        "Controlled split",
     ]
     assert result["evaluation_stages"][0]["metrics"]["roc_auc"] == 1.0
     assert result["evaluation_stages"][-1]["strategy"] == "grouped_chronological"
@@ -78,6 +78,13 @@ def test_semantic_columns_must_be_distinct() -> None:
         validate_dataset(frame, config)
 
 
+def test_column_names_must_be_unique() -> None:
+    frame = clean_control()
+    frame.columns = [*frame.columns[:-1], frame.columns[-2]]
+    with pytest.raises(ValueError, match="column names must be unique"):
+        validate_dataset(frame, DatasetConfig(target="target"))
+
+
 def test_at_least_two_rows_are_required_for_each_class() -> None:
     frame = pd.DataFrame({"feature": range(100), "target": [0] * 99 + [1]})
     with pytest.raises(ValueError, match="at least two rows"):
@@ -110,7 +117,7 @@ def test_entity_and_time_columns_do_not_count_as_model_features() -> None:
 
 def test_audit_reports_when_every_feature_is_excluded_as_leakage() -> None:
     frame = pd.DataFrame({"leak": [0, 1] * 50, "target": [0, 1] * 50})
-    with pytest.raises(ValueError, match="no trustworthy model features remain"):
+    with pytest.raises(ValueError, match="no model features remain after applying automatic"):
         audit(frame, DatasetConfig(target="target"))
 
 

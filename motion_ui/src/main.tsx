@@ -163,10 +163,10 @@ function AuditSummary({ data }: { data: SummaryData }) {
         : "critical";
   const comparisonLabel = data.fallback
     ? "Conservative baseline"
-    : "Trusted ROC-AUC";
+    : "Controlled ROC-AUC";
   const comparisonNote = data.fallback
     ? "Duplicate-safe holdout unavailable"
-    : "After defensible controls";
+    : "After automated controls";
   const summaryKey = [
     data.reliability,
     data.naiveAuc,

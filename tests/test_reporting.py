@@ -31,5 +31,5 @@ def test_infeasible_split_report_does_not_claim_a_trusted_score() -> None:
     report = build_html_report(audit(frame, config), frame, config, "duplicates.csv")
 
     assert "Conservative baseline ROC-AUC" in report
-    assert "Trusted ROC-AUC" not in report
+    assert "Controlled ROC-AUC" not in report
     assert "Evaluation limitation" in report

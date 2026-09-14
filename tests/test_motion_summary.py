@@ -43,9 +43,9 @@ def test_improved_trusted_evaluation_uses_non_alarmist_copy() -> None:
 
     assert data["comparisonGap"] == -0.01
     assert data["gapLabel"] == "AUC change after controls"
-    assert data["gapNote"] == "Trusted evaluation performed better"
+    assert data["gapNote"] == "Controlled evaluation performed better"
     assert data["verdictCopy"] == (
-        "Trusted evaluation performed better; review any detected risks separately."
+        "Controlled evaluation performed better; review any detected risks separately."
     )
 
 

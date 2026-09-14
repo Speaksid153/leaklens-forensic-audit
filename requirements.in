@@ -1,0 +1,16 @@
+# Direct application and quality dependencies. Compile this file with:
+# uv pip compile --universal requirements.in --output-file requirements.txt
+numpy==2.2.6
+pandas==2.3.1
+scikit-learn==1.7.1
+scipy==1.16.0
+streamlit==1.60.0
+plotly==6.2.0
+pytest==9.1.1
+ruff==0.12.5
+
+# Security-critical transitive dependencies are explicit so the resolver cannot
+# select releases covered by known advisories.
+GitPython==3.1.62
+Pillow==12.3.0
+tornado==6.5.8

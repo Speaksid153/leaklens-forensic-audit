@@ -13,7 +13,8 @@ from typing import Any
 import pandas as pd
 
 from leaklens.contracts import DatasetConfig
-from leaklens.presentation import SEVERITY_LABELS, severity_value
+
+SEVERITY_LABELS = {0: "Info", 1: "Low", 2: "Medium", 3: "High", 4: "Critical"}
 
 
 def dataframe_fingerprint(frame: pd.DataFrame) -> str:
@@ -38,7 +39,7 @@ def build_html_report(
     trusted = float(result["trustworthy_evaluation"]["metrics"]["roc_auc"])
     trustworthy_note = result.get("trustworthy_note")
     comparison_label = (
-        "Conservative baseline ROC-AUC" if trustworthy_note else "Trusted ROC-AUC"
+        "Conservative baseline ROC-AUC" if trustworthy_note else "Controlled ROC-AUC"
     )
     trustworthy_notice = (
         f"<section class='panel'><h2>Evaluation limitation</h2>"
@@ -47,7 +48,7 @@ def build_html_report(
         else ""
     )
     findings = "".join(
-        f"<article><span class='severity'>{escape(SEVERITY_LABELS[severity_value(item['severity'])])}</span>"
+        f"<article><span class='severity'>{escape(SEVERITY_LABELS[int(item['severity'])])}</span>"
         f"<h3>{escape(str(item['title']))}</h3><p>{escape(str(item['explanation']))}</p>"
         f"<p><b>Action:</b> {escape(str(item['recommendation']))}</p></article>"
         for item in result["findings"]

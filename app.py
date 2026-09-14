@@ -131,7 +131,7 @@ def load_source() -> tuple[pd.DataFrame, dict[str, Any], str, tuple[str, str]]:
         st.info("Upload a CSV from the sidebar or switch to a guided demonstration.")
         st.stop()
     if upload.size > 20 * 1024 * 1024:
-        st.error("The uploaded file exceeds the 20 MB Day 2 safety limit.")
+        st.error("The uploaded file exceeds the 20 MB safety limit.")
         st.stop()
     content_digest = hashlib.sha256(upload.getvalue()).hexdigest()
     try:
@@ -261,7 +261,7 @@ def render_results(
                 )
             else:
                 strategy_guidance = (
-                    f"<p>The defensible rerun used a "
+                    f"<p>The controlled rerun used a "
                     f"<strong>{escape(trusted['strategy'].replace('_', ' ').title())}</strong> "
                     f"strategy.</p><p><strong>Excluded:</strong> {escape(excluded)}</p>"
                 )
@@ -309,7 +309,7 @@ def render_results(
             st.subheader(
                 "Conservative baseline"
                 if result.get("trustworthy_note")
-                else "Trustworthy rerun"
+                else "Controlled rerun"
             )
             st.write(f"**Strategy:** {trusted['strategy'].replace('_', ' ').title()}")
             st.write(f"**Rows:** {trusted['train_rows']:,} train / {trusted['test_rows']:,} test")
@@ -346,17 +346,29 @@ if st.session_state.get("active_source_identity") != source_identity:
     st.session_state.pop("audit_result", None)
     st.session_state.pop("audit_signature", None)
     st.session_state["active_source_identity"] = source_identity
+if len(frame.columns) == 0:
+    st.error("The dataset has no columns.")
+    st.stop()
+if frame.columns.duplicated().any():
+    st.error("Column names must be unique before auditing.")
+    st.stop()
+if len(frame) < 80:
+    st.error("At least 80 rows are required for a meaningful audit.")
+    st.stop()
 if len(frame) > 100_000:
-    st.error("This Day 2 build supports up to 100,000 rows per audit.")
+    st.error("This build supports up to 100,000 rows per audit.")
     st.stop()
 if len(frame.columns) > 150:
-    st.error("This Day 2 build supports up to 150 columns per audit.")
+    st.error("This build supports up to 150 columns per audit.")
+    st.stop()
+if frame.shape[0] * frame.shape[1] > 2_000_000:
+    st.error("This build supports up to 2,000,000 data cells per audit.")
     st.stop()
 
 columns = frame.columns.tolist()
 st.sidebar.markdown('<div class="sidebar-step">02 · Experiment semantics</div>', unsafe_allow_html=True)
 target_default = defaults.get("target") if defaults else columns[-1]
-target = st.sidebar.selectbox("Target column", columns, index=columns.index(target_default))
+target = str(st.sidebar.selectbox("Target column", columns, index=columns.index(target_default)))
 entity = optional_column("Entity column", columns, defaults.get("entity"))
 time_column = optional_column("Time column", columns, defaults.get("time"))
 labels = frame[target].dropna().unique().tolist()

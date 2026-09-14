@@ -114,7 +114,7 @@ def metrics_comparison(result: dict[str, Any]) -> go.Figure:
                 name=(
                     "Conservative prevalence baseline"
                     if fallback
-                    else "Trustworthy evaluation"
+                    else "Controlled evaluation"
                 ),
                 x=labels,
                 y=[trusted[m] for m in metrics],
@@ -127,7 +127,7 @@ def metrics_comparison(result: dict[str, Any]) -> go.Figure:
         title=(
             "Naive evaluation vs conservative baseline"
             if fallback
-            else "Naive vs trustworthy evaluation"
+            else "Naive vs controlled evaluation"
         ),
         yaxis={"range": [0, 1.05], "title": "Score"},
         height=420,

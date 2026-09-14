@@ -16181,7 +16181,7 @@ function nu({
   );
 }
 function w2({ data: i }) {
-  const l = gf(), u = i.fallback ? "Split infeasible" : i.reliability >= 80 ? "Defensible" : i.reliability >= 60 ? "Review required" : "Compromised", o = i.fallback ? "review" : i.reliability >= 80 ? "safe" : i.reliability >= 60 ? "review" : "critical", c = i.fallback ? "Conservative baseline" : "Trusted ROC-AUC", d = i.fallback ? "Duplicate-safe holdout unavailable" : "After defensible controls", h = [
+  const l = gf(), u = i.fallback ? "Split infeasible" : i.reliability >= 80 ? "Defensible" : i.reliability >= 60 ? "Review required" : "Compromised", o = i.fallback ? "review" : i.reliability >= 80 ? "safe" : i.reliability >= 60 ? "review" : "critical", c = i.fallback ? "Conservative baseline" : "Controlled ROC-AUC", d = i.fallback ? "Duplicate-safe holdout unavailable" : "After automated controls", h = [
     i.reliability,
     i.naiveAuc,
     i.comparisonAuc,

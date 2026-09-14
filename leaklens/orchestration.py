@@ -19,6 +19,8 @@ from leaklens.evaluation import (
 
 
 def validate_dataset(df: pd.DataFrame, config: DatasetConfig) -> None:
+    if df.columns.duplicated().any():
+        raise ValueError("column names must be unique")
     if config.target not in df.columns:
         raise ValueError(f"target column '{config.target}' was not found")
     for label, column in (("entity", config.entity_column), ("time", config.time_column)):
@@ -38,7 +40,7 @@ def validate_dataset(df: pd.DataFrame, config: DatasetConfig) -> None:
             "target column contains missing values; remove or label them before auditing"
         )
     if df[config.target].nunique(dropna=True) != 2:
-        raise ValueError("Day 1 supports binary classification targets only")
+        raise ValueError("LeakLens supports binary classification targets only")
     if config.positive_label not in set(df[config.target].unique()):
         raise ValueError("positive_label is not present in the target column")
     class_counts = df[config.target].value_counts(dropna=False)
@@ -175,7 +177,7 @@ def audit(df: pd.DataFrame, config: DatasetConfig) -> dict[str, Any]:
     if not corrected_features:
         excluded = ", ".join(sorted(map(str, corrected_exclusions))) or "configured columns"
         raise ValueError(
-            "no trustworthy model features remain after excluding leakage-risk and semantic "
+            "no model features remain after applying automatic leakage-risk and semantic "
             f"columns ({excluded}); add at least one valid predictor"
         )
     corrected_duplicate = corrected_duplicate_finding(df, config, corrected_features)
@@ -240,7 +242,7 @@ def audit(df: pd.DataFrame, config: DatasetConfig) -> dict[str, Any]:
             "label": (
                 "Conservative prevalence baseline"
                 if trustworthy_note
-                else "Trustworthy split"
+                else "Controlled split"
             ),
             **asdict(trustworthy),
         },

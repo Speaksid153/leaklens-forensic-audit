@@ -4,7 +4,15 @@ cd /d "%~dp0"
 
 if exist ".venv\Scripts\python.exe" (
   ".venv\Scripts\python.exe" -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 12) else 1)" >nul 2>&1
-  if not errorlevel 1 goto install
+  if not errorlevel 1 (
+    ".venv\Scripts\python.exe" -m pip --version >nul 2>&1
+    if errorlevel 1 (
+      echo Repairing pip in the existing Python 3.12 environment...
+      ".venv\Scripts\python.exe" -m ensurepip --upgrade
+      if errorlevel 1 goto setup_failed
+    )
+    goto install
+  )
 
   echo.
   echo The existing .venv is incomplete or is not using Python 3.12.
@@ -43,6 +51,8 @@ exit /b 1
 
 :install
 echo Installing or verifying LeakLens dependencies...
+".venv\Scripts\python.exe" -m pip install --upgrade pip==26.2.1
+if errorlevel 1 goto setup_failed
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt
 if errorlevel 1 goto setup_failed
 

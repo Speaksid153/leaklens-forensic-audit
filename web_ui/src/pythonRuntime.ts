@@ -1,142 +1,94 @@
-import contractsSource from "../../leaklens/contracts.py?raw";
-import orchestrationSource from "../../leaklens/orchestration.py?raw";
-import evaluationSource from "../../leaklens/evaluation.py?raw";
-import detectorsInitSource from "../../leaklens/detectors/__init__.py?raw";
-import duplicatesSource from "../../leaklens/detectors/duplicates.py?raw";
-import entityOverlapSource from "../../leaklens/detectors/entity_overlap.py?raw";
-import identifiersSource from "../../leaklens/detectors/identifiers.py?raw";
-import suspiciousFeaturesSource from "../../leaklens/detectors/suspicious_features.py?raw";
-import temporalSource from "../../leaklens/detectors/temporal.py?raw";
 import type { AuditConfig, AuditResult, DatasetInfo } from "./types";
 
-type PyProxy = { toJs(options?: unknown): unknown; destroy(): void };
-type Pyodide = {
-  FS: { mkdirTree(path: string): void; writeFile(path: string, value: string): void };
-  loadPackage(packages: string[]): Promise<void>;
-  runPythonAsync(code: string, options?: { globals?: unknown }): Promise<unknown>;
-  globals: { set(name: string, value: unknown): void; delete(name: string): void };
+type WorkerRequest =
+  | { id: number; operation: "initialize" }
+  | { id: number; operation: "inspect"; csvText: string; target?: string }
+  | { id: number; operation: "audit"; csvText: string; config: AuditConfig }
+  | { id: number; operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult };
+
+type WorkerCommand =
+  | { operation: "initialize" }
+  | { operation: "inspect"; csvText: string; target?: string }
+  | { operation: "audit"; csvText: string; config: AuditConfig }
+  | { operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult };
+
+type WorkerResponse =
+  | { id: number; type: "progress"; message: string }
+  | { id: number; type: "success"; result: unknown }
+  | { id: number; type: "error"; message: string };
+
+type PendingRequest = {
+  resolve: (value: unknown) => void;
+  reject: (reason: Error) => void;
+  onProgress?: (message: string) => void;
 };
-
-declare global {
-  interface Window {
-    loadPyodide?: (options: { indexURL: string }) => Promise<Pyodide>;
-  }
-}
-
-const PYODIDE_VERSION = "0.29.2";
-const INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
-
-const sources: Record<string, string> = {
-  "/app/leaklens/__init__.py": '"""LeakLens browser runtime."""\n',
-  "/app/leaklens/contracts.py": contractsSource,
-  "/app/leaklens/orchestration.py": orchestrationSource,
-  "/app/leaklens/evaluation.py": evaluationSource,
-  "/app/leaklens/detectors/__init__.py": detectorsInitSource,
-  "/app/leaklens/detectors/duplicates.py": duplicatesSource,
-  "/app/leaklens/detectors/entity_overlap.py": entityOverlapSource,
-  "/app/leaklens/detectors/identifiers.py": identifiersSource,
-  "/app/leaklens/detectors/suspicious_features.py": suspiciousFeaturesSource,
-  "/app/leaklens/detectors/temporal.py": temporalSource,
-};
-
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.loadPyodide) return resolve();
-    const script = document.createElement("script");
-    script.src = src;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("The secure Python runtime could not be downloaded."));
-    document.head.appendChild(script);
-  });
-}
-
-function fromProxy<T>(value: unknown): T {
-  if (value && typeof value === "object" && "toJs" in value) {
-    const proxy = value as PyProxy;
-    const converted = proxy.toJs({ dict_converter: Object.fromEntries });
-    proxy.destroy();
-    return converted as T;
-  }
-  return value as T;
-}
 
 class BrowserPythonRuntime {
-  private runtime: Pyodide | null = null;
+  private worker: Worker | null = null;
+  private nextId = 1;
+  private pending = new Map<number, PendingRequest>();
   private initialization: Promise<void> | null = null;
 
+  private ensureWorker(): Worker {
+    if (this.worker) return this.worker;
+    this.worker = new Worker(new URL("./pythonWorker.ts", import.meta.url));
+    this.worker.addEventListener("message", (event: MessageEvent<WorkerResponse>) => {
+      const response = event.data;
+      const pending = this.pending.get(response.id);
+      if (!pending) return;
+      if (response.type === "progress") {
+        pending.onProgress?.(response.message);
+        return;
+      }
+      this.pending.delete(response.id);
+      if (response.type === "error") pending.reject(new Error(response.message));
+      else pending.resolve(response.result);
+    });
+    this.worker.addEventListener("error", () => {
+      const error = new Error("The private audit worker stopped unexpectedly. Refresh and retry.");
+      this.pending.forEach(({ reject }) => reject(error));
+      this.pending.clear();
+      this.worker?.terminate();
+      this.worker = null;
+      this.initialization = null;
+    });
+    return this.worker;
+  }
+
+  private request<T>(request: WorkerCommand, onProgress?: (message: string) => void) {
+    const id = this.nextId++;
+    return new Promise<T>((resolve, reject) => {
+      this.pending.set(id, {
+        resolve: (value) => resolve(value as T),
+        reject,
+        onProgress,
+      });
+      this.ensureWorker().postMessage({ ...request, id } as WorkerRequest);
+    });
+  }
+
   initialize(onProgress?: (message: string) => void): Promise<void> {
-    if (this.initialization) return this.initialization;
-    this.initialization = this.doInitialize(onProgress);
+    if (!this.initialization) {
+      this.initialization = this.request<void>({ operation: "initialize" }, onProgress).catch(
+        (error) => {
+          this.initialization = null;
+          throw error;
+        },
+      );
+    }
     return this.initialization;
   }
 
-  private async doInitialize(onProgress?: (message: string) => void) {
-    onProgress?.("Loading private browser runtime");
-    await loadScript(`${INDEX_URL}pyodide.js`);
-    if (!window.loadPyodide) throw new Error("Python runtime loader was unavailable.");
-    this.runtime = await window.loadPyodide({ indexURL: INDEX_URL });
-    onProgress?.("Loading pandas and scikit-learn");
-    await this.runtime.loadPackage(["numpy", "pandas", "scikit-learn"]);
-    onProgress?.("Installing the LeakLens audit engine");
-    this.runtime.FS.mkdirTree("/app/leaklens/detectors");
-    Object.entries(sources).forEach(([path, source]) => this.runtime?.FS.writeFile(path, source));
-    await this.runtime.runPythonAsync(`
-import sys
-if "/app" not in sys.path:
-    sys.path.insert(0, "/app")
-from leaklens.contracts import DatasetConfig
-from leaklens.orchestration import audit
-`);
-    onProgress?.("Runtime ready");
+  inspectCsv(csvText: string, target?: string): Promise<DatasetInfo> {
+    return this.request<DatasetInfo>({ operation: "inspect", csvText, target });
   }
 
-  private requireRuntime(): Pyodide {
-    if (!this.runtime) throw new Error("The audit runtime is not ready yet.");
-    return this.runtime;
+  auditCsv(csvText: string, config: AuditConfig): Promise<AuditResult> {
+    return this.request<AuditResult>({ operation: "audit", csvText, config });
   }
 
-  async inspectCsv(csvText: string, target?: string): Promise<DatasetInfo> {
-    const runtime = this.requireRuntime();
-    runtime.globals.set("csv_text", csvText);
-    runtime.globals.set("selected_target", target ?? "");
-    try {
-      const proxy = await runtime.runPythonAsync(`
-import io
-import pandas as pd
-_inspection_df = pd.read_csv(io.StringIO(csv_text))
-_target = selected_target if selected_target in _inspection_df.columns else str(_inspection_df.columns[-1])
-{
-    "columns": [str(column) for column in _inspection_df.columns],
-    "rows": int(len(_inspection_df)),
-    "labels": _inspection_df[_target].dropna().drop_duplicates().head(100).tolist(),
-}
-`);
-      return fromProxy<DatasetInfo>(proxy);
-    } finally {
-      runtime.globals.delete("csv_text");
-      runtime.globals.delete("selected_target");
-    }
-  }
-
-  async auditCsv(csvText: string, config: AuditConfig): Promise<AuditResult> {
-    const runtime = this.requireRuntime();
-    runtime.globals.set("csv_text", csvText);
-    runtime.globals.set("config_json", JSON.stringify(config));
-    try {
-      const resultJson = await runtime.runPythonAsync(`
-import io
-import json
-import pandas as pd
-_browser_config = json.loads(config_json)
-_browser_df = pd.read_csv(io.StringIO(csv_text))
-_browser_result = audit(_browser_df, DatasetConfig(**_browser_config))
-json.dumps(_browser_result, default=lambda value: int(value))
-`);
-      return JSON.parse(String(resultJson)) as AuditResult;
-    } finally {
-      runtime.globals.delete("csv_text");
-      runtime.globals.delete("config_json");
-    }
+  buildReport(csvText: string, config: AuditConfig, sourceName: string, result: AuditResult) {
+    return this.request<string>({ operation: "report", csvText, config, sourceName, result });
   }
 }
 

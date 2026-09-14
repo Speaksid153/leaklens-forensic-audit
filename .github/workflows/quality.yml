@@ -8,15 +8,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.9.0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: pnpm
@@ -25,19 +25,43 @@ jobs:
             web_ui/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
         working-directory: motion_ui
+      - run: pnpm audit --audit-level=moderate
+        working-directory: motion_ui
       - run: pnpm run typecheck
         working-directory: motion_ui
       - run: pnpm run build
         working-directory: motion_ui
       - run: pnpm install --frozen-lockfile
         working-directory: web_ui
+      - run: pnpm audit --audit-level=moderate
+        working-directory: web_ui
       - run: pnpm run build
         working-directory: web_ui
-      - run: python -m pip install -r requirements.txt
+      - run: python -m pip install --upgrade pip==26.2.1
+      - run: python -m pip install -r requirements.txt pip-audit==2.10.1
       - run: python -m pip check
+      - run: python -m pip_audit
       - run: python -m ruff check .
       - run: python -m compileall -q app.py leaklens scripts tests
       - run: python -m pytest
       - run: python -m scripts.generate_demo_data
       - run: git diff --exit-code -- demo_data
       - run: git diff --exit-code -- leaklens/motion_dist
+
+  python-compatibility:
+    name: Python ${{ matrix.python-version }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --upgrade pip==26.2.1
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pip check
+      - run: python -m pytest

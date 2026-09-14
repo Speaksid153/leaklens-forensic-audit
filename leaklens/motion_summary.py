@@ -41,10 +41,10 @@ def build_motion_summary_data(result: dict[str, Any]) -> dict[str, Any]:
         gap_note = "Performance that did not survive"
     elif display_gap < 0:
         verdict_copy = (
-            "Trusted evaluation performed better; review any detected risks separately."
+            "Controlled evaluation performed better; review any detected risks separately."
         )
         gap_label = "AUC change after controls"
-        gap_note = "Trusted evaluation performed better"
+        gap_note = "Controlled evaluation performed better"
     elif finding_count:
         verdict_copy = (
             "Headline performance remained stable; review the detected integrity risks."

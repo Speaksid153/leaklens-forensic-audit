@@ -28,7 +28,7 @@ def test_metric_waterfall_uses_all_evaluation_stages() -> None:
     assert list(figure.data[0].x) == [
         "Naive random split",
         "Leaky features removed",
-        "Trustworthy split",
+        "Controlled split",
     ]
     assert figure.layout.yaxis.range == (0, 1.08)
 
