@@ -22,6 +22,7 @@ from leaklens.presentation import (
     metrics_comparison,
     severity_value,
 )
+from leaklens.remediation import build_candidate_dataset
 from leaklens.reporting import build_html_report
 from leaklens.ui_styles import FORENSIC_STYLES
 
@@ -334,8 +335,17 @@ def render_results(
             file_name="leaklens-evidence-report.html",
             mime="text/html",
         )
+        candidate = build_candidate_dataset(frame, result)
+        st.download_button(
+            "Download candidate controlled dataset",
+            candidate.to_csv(index=False),
+            file_name="leaklens-candidate-controlled.csv",
+            mime="text/csv",
+        )
         st.caption(
-            "The export contains the audit configuration, evidence, metrics, and split strategy."
+            "The JSON includes the dataset fingerprint, exact audit configuration, runtime "
+            "versions, evidence, metrics, and split strategy. Review automatically excluded "
+            "columns with a domain owner before using the candidate dataset."
         )
 
 

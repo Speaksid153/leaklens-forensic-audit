@@ -34,3 +34,10 @@ shows a non-memorizing prevalence baseline as a conservative reference.
 Near-perfect univariate performance is labeled *suspected* leakage. Domain knowledge is required
 to determine whether a field would exist at the real prediction moment. Categorical screening uses
 leave-one-out encoding so a row's own label cannot manufacture its suspicious-feature score.
+
+## Reproducibility and remediation
+
+Each diagnostic carries a versioned provenance manifest: dataset SHA-256, experiment semantics,
+seed, holdout size, engine version, and scientific-runtime versions. The optional candidate
+controlled CSV applies only the exclusions already shown in the audit and must still pass domain
+review before it is used for modelling.

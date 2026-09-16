@@ -4,13 +4,15 @@ type WorkerRequest =
   | { id: number; operation: "initialize" }
   | { id: number; operation: "inspect"; csvText: string; target?: string }
   | { id: number; operation: "audit"; csvText: string; config: AuditConfig }
-  | { id: number; operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult };
+  | { id: number; operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult }
+  | { id: number; operation: "remediate"; csvText: string; result: AuditResult };
 
 type WorkerCommand =
   | { operation: "initialize" }
   | { operation: "inspect"; csvText: string; target?: string }
   | { operation: "audit"; csvText: string; config: AuditConfig }
-  | { operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult };
+  | { operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult }
+  | { operation: "remediate"; csvText: string; result: AuditResult };
 
 type WorkerResponse =
   | { id: number; type: "progress"; message: string }
@@ -89,6 +91,10 @@ class BrowserPythonRuntime {
 
   buildReport(csvText: string, config: AuditConfig, sourceName: string, result: AuditResult) {
     return this.request<string>({ operation: "report", csvText, config, sourceName, result });
+  }
+
+  buildCandidateCsv(csvText: string, result: AuditResult) {
+    return this.request<string>({ operation: "remediate", csvText, result });
   }
 }
 

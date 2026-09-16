@@ -15,7 +15,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111827)
 ![Motion](https://img.shields.io/badge/Motion-12-FFF312?logo=framer&logoColor=111827)
-![pytest](https://img.shields.io/badge/pytest-56_tests-0A9EDC?logo=pytest&logoColor=white)
+![pytest](https://img.shields.io/badge/pytest-59_tests-0A9EDC?logo=pytest&logoColor=white)
 [![GitHub Actions](https://img.shields.io/github/actions/workflow/status/Speaksid153/leaklens-forensic-audit/quality.yml?branch=main&label=quality&logo=githubactions)](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/quality.yml)
 
 > [!IMPORTANT]
@@ -33,6 +33,8 @@ The audit engine is self-contained and operates independently of the Streamlit i
 - Stratified, group-aware, chronological, and entity-disjoint chronological evaluation strategies
 - Leakage-safe scikit-learn preprocessing with a logistic-regression baseline
 - Transparent reliability deductions and metric-inflation quantification
+- Versioned provenance manifests with dataset fingerprints and runtime metadata
+- Candidate controlled-dataset export that applies the audit's automatic exclusions
 - Automated positive, negative, compatibility, and reproducibility tests
 
 ## Local setup
@@ -75,7 +77,7 @@ On Windows, you can instead double-click [`run_leaklens.bat`](run_leaklens.bat).
   <tr>
     <td width="33%"><strong>🔬 Evidence cards</strong><br><sub>Detector-specific findings with remediation guidance.</sub></td>
     <td width="33%"><strong>⚖️ Metric comparison</strong><br><sub>Side-by-side naive and controlled results.</sub></td>
-    <td width="33%"><strong>📦 Evidence export</strong><br><sub>Reproducible JSON and standalone offline HTML reports.</sub></td>
+    <td width="33%"><strong>📦 Evidence export</strong><br><sub>Versioned JSON, offline HTML, and a candidate controlled CSV.</sub></td>
   </tr>
 </table>
 
@@ -94,6 +96,7 @@ The production browser application lives in [`web_ui`](web_ui). It uses React an
 cd web_ui
 pnpm install --frozen-lockfile
 pnpm run build
+pnpm run test:e2e
 pnpm run preview
 ```
 
@@ -135,9 +138,12 @@ The exact column selections and expected results are documented in [`demo_data/R
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m compileall -q app.py leaklens scripts tests
 .\.venv\Scripts\python.exe -m pytest
+cd web_ui
+pnpm run build
+pnpm run test:e2e
 ```
 
-The [GitHub Actions workflow](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/quality.yml) type-checks and builds both frontends, regenerates the demo data, and rejects bundle or dataset drift. The deployed animation code is reproducible and independent of a developer's local `node_modules` directory.
+The [quality workflow](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/quality.yml) type-checks and builds both frontends, regenerates demo data, and rejects bundle or dataset drift. The [deployment workflow](https://github.com/Speaksid153/leaklens-forensic-audit/actions/workflows/pages.yml) additionally runs a real browser upload, audit, responsiveness, and export test before GitHub Pages can publish.
 
 ## Current limitations
 
@@ -150,6 +156,7 @@ The [GitHub Actions workflow](https://github.com/Speaksid153/leaklens-forensic-a
 ## Methodology and submission material
 
 - [Evaluation methodology](METHODOLOGY.md)
+- [System architecture and trust boundaries](ARCHITECTURE.md)
 - [Codex build log](CODEX_BUILD_LOG.md)
 - [Hackathon project description](https://docs.google.com/document/d/1928YGvsqkOxb8rpCt_-qwbu2TptmYfdfBDANkP2Zp0E/edit?usp=sharing)
 - [78-second captioned demo on Google Drive](https://drive.google.com/file/d/1Jwa6wzx2Y9tutOx472jGvAOtuvKR24pu/view?usp=sharing)

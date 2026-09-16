@@ -8,6 +8,8 @@ import identifiersSource from "../../leaklens/detectors/identifiers.py?raw";
 import suspiciousFeaturesSource from "../../leaklens/detectors/suspicious_features.py?raw";
 import temporalSource from "../../leaklens/detectors/temporal.py?raw";
 import reportingSource from "../../leaklens/reporting.py?raw";
+import provenanceSource from "../../leaklens/provenance.py?raw";
+import remediationSource from "../../leaklens/remediation.py?raw";
 import type { AuditConfig, AuditResult } from "./types";
 
 declare function importScripts(...urls: string[]): void;
@@ -23,7 +25,8 @@ type WorkerRequest =
   | { id: number; operation: "initialize" }
   | { id: number; operation: "inspect"; csvText: string; target?: string }
   | { id: number; operation: "audit"; csvText: string; config: AuditConfig }
-  | { id: number; operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult };
+  | { id: number; operation: "report"; csvText: string; config: AuditConfig; sourceName: string; result: AuditResult }
+  | { id: number; operation: "remediate"; csvText: string; result: AuditResult };
 
 const scope = self as unknown as {
   loadPyodide?: (options: { indexURL: string }) => Promise<Pyodide>;
@@ -44,6 +47,8 @@ const sources: Record<string, string> = {
   "/app/leaklens/detectors/suspicious_features.py": suspiciousFeaturesSource,
   "/app/leaklens/detectors/temporal.py": temporalSource,
   "/app/leaklens/reporting.py": reportingSource,
+  "/app/leaklens/provenance.py": provenanceSource,
+  "/app/leaklens/remediation.py": remediationSource,
 };
 
 let runtime: Pyodide | null = null;
@@ -83,6 +88,7 @@ if "/app" not in sys.path:
 from leaklens.contracts import DatasetConfig
 from leaklens.orchestration import audit
 from leaklens.reporting import build_html_report
+from leaklens.remediation import build_candidate_dataset
 `);
       progress(id, "Runtime ready");
     })().catch((error) => {
@@ -163,6 +169,24 @@ build_html_report(json.loads(result_json), _report_df, _report_config, source_na
   }
 }
 
+async function buildCandidateCsv(csvText: string, result: AuditResult) {
+  if (!runtime) throw new Error("The audit runtime is not ready yet.");
+  runtime.globals.set("csv_text", csvText);
+  runtime.globals.set("result_json", JSON.stringify(result));
+  try {
+    return String(await runtime.runPythonAsync(`
+import io
+import json
+import pandas as pd
+_candidate_df = pd.read_csv(io.StringIO(csv_text))
+build_candidate_dataset(_candidate_df, json.loads(result_json)).to_csv(index=False)
+`));
+  } finally {
+    runtime.globals.delete("csv_text");
+    runtime.globals.delete("result_json");
+  }
+}
+
 scope.onmessage = ({ data }) => {
   taskQueue = taskQueue.then(async () => {
     try {
@@ -171,6 +195,7 @@ scope.onmessage = ({ data }) => {
       if (data.operation === "inspect") result = await inspect(data.csvText, data.target);
       else if (data.operation === "audit") result = await runAudit(data.csvText, data.config);
       else if (data.operation === "report") result = await buildReport(data.csvText, data.config, data.sourceName, data.result);
+      else if (data.operation === "remediate") result = await buildCandidateCsv(data.csvText, data.result);
       scope.postMessage({ id: data.id, type: "success", result });
     } catch (error) {
       scope.postMessage({ id: data.id, type: "error", message: cleanError(error) });

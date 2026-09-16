@@ -33,6 +33,13 @@ export type Finding = {
 };
 
 export type AuditResult = {
+  provenance: {
+    schema_version: string;
+    engine_version: string;
+    dataset_sha256: string;
+    configuration: AuditConfig & { random_state: number; test_size: number };
+    runtime: { python: string; platform: string; pandas: string; scikit_learn: string };
+  };
   dataset: { rows: number; columns: number; target: string; positive_rate: number };
   findings: Finding[];
   reliability: { score: number; deductions: Record<string, number> };

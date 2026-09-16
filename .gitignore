@@ -10,3 +10,5 @@ artifacts/
 motion_ui/node_modules/
 web_ui/node_modules/
 web_ui/dist/
+web_ui/playwright-report/
+web_ui/test-results/

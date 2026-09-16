@@ -3,28 +3,16 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from datetime import UTC, datetime
 from html import escape
-from importlib.metadata import version
 from typing import Any
 
 import pandas as pd
 
 from leaklens.contracts import DatasetConfig
+from leaklens.provenance import dataframe_fingerprint
 
 SEVERITY_LABELS = {0: "Info", 1: "Low", 2: "Medium", 3: "High", 4: "Critical"}
-
-
-def dataframe_fingerprint(frame: pd.DataFrame) -> str:
-    """Return a stable content-and-schema fingerprint for an audit input."""
-
-    digest = hashlib.sha256()
-    digest.update(json.dumps(list(map(str, frame.columns))).encode())
-    digest.update(json.dumps(list(map(str, frame.dtypes))).encode())
-    digest.update(pd.util.hash_pandas_object(frame, index=True).values.tobytes())
-    return digest.hexdigest()
 
 
 def build_html_report(
@@ -33,7 +21,13 @@ def build_html_report(
     """Build a self-contained HTML report suitable for judging or peer review."""
 
     generated = datetime.now(UTC).isoformat(timespec="seconds")
-    fingerprint = dataframe_fingerprint(frame)
+    provenance = result.get("provenance", {})
+    fingerprint = str(provenance.get("dataset_sha256") or dataframe_fingerprint(frame))
+    runtime = provenance.get("runtime", {})
+    pandas_version = escape(str(runtime.get("pandas", "unknown")))
+    sklearn_version = escape(str(runtime.get("scikit_learn", "unknown")))
+    schema_version = escape(str(provenance.get("schema_version", "unknown")))
+    engine_version = escape(str(provenance.get("engine_version", "unknown")))
     reliability = int(result["reliability"]["score"])
     naive = float(result["naive_evaluation"]["metrics"]["roc_auc"])
     trusted = float(result["trustworthy_evaluation"]["metrics"]["roc_auc"])
@@ -63,5 +57,5 @@ body{{margin:0;background:#070b14;color:#e2e8f0;font:15px Inter,system-ui,sans-s
 </style></head><body><main><span class='kicker'>Portable forensic evidence</span><h1>LeakLens audit report</h1><p>Source: {escape(source_name)} · {len(frame):,} rows · {len(frame.columns)} columns</p>
 <section class='grid'><div class='metric'>Reliability<b>{reliability}/100</b></div><div class='metric'>Naive ROC-AUC<b>{naive:.3f}</b></div><div class='metric'>{comparison_label}<b>{trusted:.3f}</b></div></section>
 {trustworthy_notice}<section class='panel'><h2>Score survival path</h2><table><tbody>{stages}</tbody></table></section><h2>Forensic findings</h2>{findings}
-<section class='panel'><h2>Reproducibility</h2><p>Target: {escape(config.target)} · Entity: {escape(str(config.entity_column))} · Time: {escape(str(config.time_column))} · Positive class: {escape(str(config.positive_label))} · Seed: {config.random_state} · Holdout: {config.test_size:.0%}</p><p>Dataset SHA-256: <code>{fingerprint}</code></p><p>Runtime: Python package versions pandas {version('pandas')}, scikit-learn {version('scikit-learn')}, LeakLens 0.1.0</p></section>
+<section class='panel'><h2>Reproducibility</h2><p>Target: {escape(config.target)} · Entity: {escape(str(config.entity_column))} · Time: {escape(str(config.time_column))} · Positive class: {escape(str(config.positive_label))} · Seed: {config.random_state} · Holdout: {config.test_size:.0%}</p><p>Dataset SHA-256: <code>{fingerprint}</code></p><p>Audit schema {schema_version} · Runtime: pandas {pandas_version}, scikit-learn {sklearn_version}, LeakLens {engine_version}</p></section>
 <footer>Generated {generated}. This diagnostic tests evaluation integrity; it is not a certification of model safety, fairness, or production readiness.</footer></main></body></html>"""

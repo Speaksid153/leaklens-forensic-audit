@@ -130,6 +130,22 @@ Final post-hardening result: 23 tests passed with a clean deterministic-data dif
 Day 3 verification result: 25 Python tests passed; Ruff, bytecode compilation, TypeScript checking,
 Vite production build, desktop browser QA, mobile browser QA, and HTML export presence all passed.
 
+## Submission-grade reproducibility and deployment gate
+
+- Re-read the official scoring matrix and focused the final pass on technical execution, viability,
+  and judge-verifiable evidence instead of adding a superficial model zoo.
+- Added a versioned audit provenance manifest containing the dataset fingerprint, exact experiment
+  semantics, deterministic settings, engine version, and scientific-runtime versions.
+- Added a candidate controlled CSV export that applies the audit's explicit exclusions while
+  preserving the target and original data.
+- Added an architecture and trust-boundary document explaining local execution, shared-engine parity,
+  failure containment, and deliberate scope.
+- Added Playwright deployment coverage that uploads the supplied leaky CSV, configures entity and
+  time semantics, proves the page remains responsive during analysis, checks the expected findings
+  and controlled ROC-AUC, and validates downloaded JSON and CSV artifacts.
+- Made that end-to-end test a required GitHub Pages build step, so a broken core flow cannot be
+  published by the normal deployment workflow.
+
 ### Frontend redesign pass
 
 - Rebuilt the page hierarchy around a visible LeakLens product bar positioned below Streamlit's

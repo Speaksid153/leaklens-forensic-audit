@@ -28,7 +28,7 @@ File: `leaklens_leaky_example.csv`
 Expected result: 620 rows and findings for entity overlap, a suspicious post-outcome feature,
 duplicate contamination, identifier memorization, and temporal mismatch. Reliability should be
 `1/100`; ROC-AUC should fall from `1.000` in the naive evaluation to approximately `0.611` in the
-trustworthy evaluation.
+controlled evaluation.
 
 These files contain entirely synthetic data. Regenerate them at any time with:
 

@@ -16,6 +16,7 @@ from leaklens.evaluation import (
     recommended_strategy,
     split_indices,
 )
+from leaklens.provenance import build_provenance
 
 
 def validate_dataset(df: pd.DataFrame, config: DatasetConfig) -> None:
@@ -248,6 +249,7 @@ def audit(df: pd.DataFrame, config: DatasetConfig) -> dict[str, Any]:
         },
     ]
     return {
+        "provenance": build_provenance(df, config),
         "dataset": {
             "rows": len(df),
             "columns": len(df.columns),
